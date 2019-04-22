@@ -14,18 +14,19 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
-train=pd.read_csv('input/train_data.csv')
-test=pd.read_csv('input/test_a.csv')
-print(len(train),len(test))
-df=pd.concat([train,test],keys="ID",axis=0,sort=True)
 
-no_features=['ID','tradeTime','tradeMoney','buildYear','region','plate','communityName']
-categorical_feas=['rentType','houseType','houseFloor','houseToward','houseDecoration','city']
-df=pd.get_dummies(df,columns=categorical_feas)
-train,test=df[:len(train)],df[len(train):]
+train = pd.read_csv('input/train_data.csv')
+test = pd.read_csv('input/test_a.csv')
+print(len(train), len(test))
+df = pd.concat([train, test], keys="ID", axis=0, sort=True)
+
+no_features = ['ID', 'tradeTime', 'tradeMoney', 'buildYear', 'region', 'plate', 'communityName']
+categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'city']
+df = pd.get_dummies(df, columns=categorical_feas)
+train, test = df[:len(train)], df[len(train):]
 # train=pd.get_dummies(train,columns=categorical_feas)
 # test=pd.get_dummies(test,columns=categorical_feas)
-features=[fea for fea in train.columns if fea not in no_features]
+features = [fea for fea in train.columns if fea not in no_features]
 print(features)
 train.head().to_csv('demo.csv')
 # 8.得到输入X ，输出y
@@ -33,23 +34,32 @@ train_id = train['ID'].values
 y = train['tradeMoney'].values.astype("float32")
 print(y)
 X = train[features].values
-print("X shape:",X.shape)
-print("y shape:",y.shape)
+print("X shape:", X.shape)
+print("y shape:", y.shape)
 
 test_id = test['ID'].values
 test_data = test[features].values
-print("test shape",test_data.shape)
+print("test shape", test_data.shape)
 
 # 9.开始训练
 # 采取分层采样
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+
+
+# 定义评价函数
+def score(y_pred, y_true):
+    y_true = y_true.get_label()
+    # since preds are margin(before logistic transformation, cutoff at 0)
+    return 'my_score', 1 - np.sum((y_pred - y_true) ** 2) / np.sum((y_pred - np.mean(y_true)) ** 2), True
+
 
 print("start：********************************")
 start = time.time()
 
 N = 5
-skf = KFold(n_splits=N,shuffle=True,random_state=2018)
+skf = KFold(n_splits=N, shuffle=True, random_state=2018)
 
 auc_cv = []
 pred_cv = []
@@ -74,21 +84,22 @@ for k, (train_in, test_in) in enumerate(skf.split(X, y)):
         'verbose': 0
     }
 
-    print('................Start training {} fold..........................'.format(k+1))
+    print('................Start training {} fold..........................'.format(k + 1))
     # train
     gbm = lgb.train(params,
                     lgb_train,
                     num_boost_round=2000,
                     valid_sets=lgb_eval,
+                    feval=score,
                     # early_stopping_rounds=100,
-                    verbose_eval=100,feature_name=features)
-    lgb.plot_importance(gbm,max_num_features=20)
+                    verbose_eval=100, feature_name=features)
+    lgb.plot_importance(gbm, max_num_features=20)
     plt.show()
     print('................Start predict .........................')
     # 预测
     y_pred = gbm.predict(X_test, num_iteration=gbm.best_iteration)
     # 评估
-    tmp_auc = mean_squared_error(y_test, y_pred)
+    tmp_auc = r2_score(y_test, y_pred)
     auc_cv.append(tmp_auc)
     print("valid auc:", tmp_auc)
     # test
@@ -118,4 +129,4 @@ print('result shape:', r.shape)
 result = pd.DataFrame()
 # result['ID'] = test_id
 result['p'] = r
-result.to_csv(filepath, header=False,index=False, sep=",")
+result.to_csv(filepath, header=False, index=False, sep=",")

@@ -12,6 +12,8 @@ import numpy as np
 import pandas as pd
 import datetime
 import time
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler,MinMaxScaler
 from sklearn.model_selection import KFold
 from sklearn.metrics import r2_score
 
@@ -21,12 +23,18 @@ print(train.shape)
 print(test.shape)
 df = pd.concat([train, test], keys="ID", axis=0, sort=False)
 
-no_features = ['ID', 'tradeTime', 'tradeMoney', ]
-categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'city', 'buildYear',
-                    'region', 'plate', 'communityName']
+no_features = ['ID', 'tradeTime', 'tradeMoney', 'city', 'buildYear',
+                    'region', 'plate']
+categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration','communityName']
+# 特征工程
+# df=pd.get_dummies(df,columns=categorical_feas)
+for col in categorical_feas:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
 features = [fea for fea in train.columns if fea not in no_features + categorical_feas]
 
 train, test = df[:len(train)], df[len(train):]
+print(train.shape)
 X = train[features].values
 y = train['tradeMoney'].values
 test_data = test[features].values
