@@ -14,32 +14,50 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
-train=pd.read_csv('input/train_data.csv')
-test=pd.read_csv('input/test_a.csv')
-print(len(train),len(test))
-df=pd.concat([train,test],keys="ID",axis=0,sort=True)
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
-no_features=['ID','tradeTime','tradeMoney','buildYear','region','plate','communityName']
-categorical_feas=['rentType','houseType','houseFloor','houseToward','houseDecoration','city']
-df=pd.get_dummies(df,columns=categorical_feas)
-train,test=df[:len(train)],df[len(train):]
+
+train = pd.read_csv('input/train_data.csv')
+test = pd.read_csv('input/test_a.csv')
+print(len(train), len(test))
+df = pd.concat([train, test], keys="ID", axis=0, sort=True)
+import datetime
+now = datetime.datetime.now()
+df['tradeTime']=pd.to_datetime(df['tradeTime'])
+df['interval']=(now-df['tradeTime']).dt.days
+no_features = ['ID', 'tradeTime', 'tradeMoney',]
+
+categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'city','buildYear', 'region', 'plate', 'communityName']
+# df=pd.get_dummies(df,columns=categorical_feas)
+for col in categorical_feas:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
+
+sd_cols=['totalTradeMoney','totalTradeArea','tradeMeanPrice','totalNewTradeMoney','tradeNewMeanPrice','supplyLandArea','tradeLandArea','landTotalPrice','landMeanPrice','totalWorkers','residentPopulation']
+sd=MinMaxScaler()
+df[sd_cols]=sd.fit_transform(df[sd_cols])
+
+train, test = df[:len(train)], df[len(train):]
 # train=pd.get_dummies(train,columns=categorical_feas)
 # test=pd.get_dummies(test,columns=categorical_feas)
-features=[fea for fea in train.columns if fea not in no_features]
+
+
+features = [fea for fea in train.columns if fea not in no_features]
 print(features)
 train.head().to_csv('demo.csv')
+
 # 8.得到输入X ，输出y
 train_id = train['ID'].values
-y = train['tradeMoney'].values
+y = train['tradeMoney'].values.astype("float32")
 print(y)
 X = train[features].values
-print("X shape:",X.shape)
-print("y shape:",y.shape)
+print("X shape:", X.shape)
+print("y shape:", y.shape)
 
 test_id = test['ID'].values
 test_data = test[features].values
-print("test shape",test_data.shape)
-
+print("test shape", test_data.shape)
 
 print("start：********************************")
 start = time.time()
@@ -64,9 +82,9 @@ for train_index, test_index in skf.split(X, y):
               'objective': 'reg:linear',
               'eta': 0.02,
               # 'max_depth':4,
-              'min_child_weight': 6,
-              'colsample_bytree': 0.7,
-              'subsample': 0.7,
+              # 'min_child_weight': 6,
+              # 'colsample_bytree': 0.7,
+              # 'subsample': 0.7,
               # 'eval_metric':'rmse',
               # 'gamma':0,
               # 'lambda':1,
