@@ -3,7 +3,7 @@
 """ 
 @author:quincyqiang 
 @license: Apache Licence 
-@file: lgb_baseline.py 
+@file: 01_lgb_baseline.py
 @time: 2019-04-23 15:18
 @description: lgb 模型
 """
@@ -42,13 +42,13 @@ for train_index, test_index in kf.split(X, y):
         #                     n_estimators=2000
         #                     boosting_type='dart',n_estimators=15000,num_leaves=100,max_depth=12
         objective='regression', num_leaves=900,
-        learning_rate=0.1, n_estimators=200, bagging_fraction=0.7,
+        learning_rate=0.05, n_estimators=2000, bagging_fraction=0.7,
         feature_fraction=0.6, reg_alpha=0.3, reg_lambda=0.3,
         min_data_in_leaf=18, min_sum_hessian_in_leaf=0.001)
     clf.fit(x_train, y_train,
             eval_set=[(x_valid, y_valid)],
             eval_metric=my_score,
-            # early_stopping_rounds=100,
+            early_stopping_rounds=100,
             verbose=True)
 
     # 验证集测试
