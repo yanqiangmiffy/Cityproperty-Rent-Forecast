@@ -45,7 +45,7 @@ train, test = df[:len(train)], df[len(train):]
 
 features = [fea for fea in train.columns if fea not in no_features]
 print(features)
-train.head().to_csv('demo.csv')
+# train.head().to_csv('demo.csv')
 
 # 8.得到输入X ，输出y
 train_id = train['ID'].values
@@ -97,9 +97,9 @@ for train_index, test_index in skf.split(X, y):
     evallist = [(dtrain, 'train'), (dvali, 'valid')]  # 'valid-auc' will be used for early stopping
     # 模型train
     model = xgb.train(params, dtrain,
-                      num_boost_round=1000,
+                      num_boost_round=2000,
                       evals=evallist,
-                      early_stopping_rounds=100,
+                      early_stopping_rounds=500,
                       verbose_eval=100)
     # 预测验证
     pred = model.predict(dvali, ntree_limit=model.best_ntree_limit)
