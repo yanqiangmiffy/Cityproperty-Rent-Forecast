@@ -35,3 +35,8 @@ numerical_feas=['ID','area','totalFloor','saleSecHouseNum','subwayStationNum',
 #               'gymNum', 'bankNum', 'shopNum', 'parkNum', 'mallNum', 'superMarketNum',
 #               'supplyLandArea', 'tradeLandArea'], axis=1)
 ```
+
+### 结果
+
+- lgb+使用基本特征：0.839340	
+- lgb+特征工程：
