@@ -18,7 +18,7 @@ from itertools import combinations
 # df['interval']=(now-df['tradeTime']).dt.days
 # no_features = ['ID', 'tradeTime', 'tradeMoney',]
 df_train = pd.read_csv('input/train_data.csv')
-df_train = df_train.query("tradeMoney>=500&tradeMoney<100000")
+df_train = df_train.query("tradeMoney>=1000&tradeMoney<15000")
 df_test = pd.read_csv('input/test_a.csv')
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
 
