@@ -51,18 +51,18 @@ for col in categorical_feas:
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
 
-df['stationNum'] = df['subwayStationNum'] + df['busStationNum']
-df['schoolNum'] = df['interSchoolNum'] + df['schoolNum'] + df['privateSchoolNum']
-df['medicalNum'] = df['hospitalNum'] + df['drugStoreNum']
-df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'] + df['mallNum'] + df['superMarketNum']
-df['landSupplyTradeRatio'] = df['supplyLandArea'] / df['tradeLandArea']
+# df['stationNum'] = df['subwayStationNum'] + df['busStationNum']
+# df['schoolNum'] = df['interSchoolNum'] + df['schoolNum'] + df['privateSchoolNum']
+# df['medicalNum'] = df['hospitalNum'] + df['drugStoreNum']
+# df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'] + df['mallNum'] + df['superMarketNum']
+# df['landSupplyTradeRatio'] = df['supplyLandArea'] / df['tradeLandArea']
 
-df = df.drop(['subwayStationNum', 'busStationNum',
-              'interSchoolNum', 'schoolNum', 'privateSchoolNum',
-              'hospitalNum', 'drugStoreNum',
-              'gymNum', 'bankNum', 'shopNum', 'parkNum', 'mallNum', 'superMarketNum',
-              'supplyLandArea', 'tradeLandArea'], axis=1)
-df.to_csv('input/df.csv', index=False)
+# df = df.drop(['subwayStationNum', 'busStationNum',
+#               'interSchoolNum', 'schoolNum', 'privateSchoolNum',
+#               'hospitalNum', 'drugStoreNum',
+#               'gymNum', 'bankNum', 'shopNum', 'parkNum', 'mallNum', 'superMarketNum',
+#               'supplyLandArea', 'tradeLandArea'], axis=1)
+df[:20].to_csv('input/df.csv', index=False)
 
 
 # 特征工程
