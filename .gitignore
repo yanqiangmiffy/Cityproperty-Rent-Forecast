@@ -1,3 +1,4 @@
 .idea/
 notes/.ipynb_checkpoints/
 **__pycache__
+input/df.csv
