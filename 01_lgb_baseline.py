@@ -22,7 +22,7 @@ train, test, no_features, features = load_data()
 print(train.head())
 print(len(features))
 
-features=['now_build_interval', 'area', 'tradeMeanPrice_area_multiply', 'totalFloor', 'tradeNewMeanPrice_area_multiply', 'tradeMeanPrice_area_div', 'totalTradeMoney_area_multiply', 'houseType_wei', 'totalTradeArea_area_multiply', 'now_trade_interval', 'totalTradeArea_area_div', 'houseType_shi', 'totalTradeMoney_area_div', 'tradeNewMeanPrice_area_div', 'houseToward', 'totalNewTradeMoney_area_div', 'houseFloor', 'totalNewTradeMoney_area_multiply', 'totalNewTradeArea_area_multiply', 'plate', 'houseType_ting', 'totalNewTradeArea_area_diff', 'totalNewTradeArea_area_div', 'houseDecoration', 'houseType', 'tradeMeanPrice_tradeNewMeanPrice_diff', 'pv_uv_div', 'tradeMeanPrice_area_diff', 'rentType', 'totalNewTradeArea_area_sum', 'totalTradeArea_tradeMeanPrice_diff', 'tradeMeanPrice_totalTradeMoney_multiply', 'totalTradeArea_totalTradeMoney_div', 'tradeSecNum_newWorkers_sum', 'tradeSecNum_totalWorkers_div', 'tradeNewMeanPrice_area_diff', 'tradeMeanPrice_tradeNewMeanPrice_sum', 'busStationNum_gymNum_div', 'saleSecHouseNum_privateSchoolNum_diff', 'remainNewNum_totalWorkers_multiply', 'busStationNum_tradeSecNum_diff', 'gymNum_bankNum_div', 'pv', 'totalTradeArea_tradeMeanPrice_sum', 'drugStoreNum_gymNum_div', 'shopNum_superMarketNum_div', 'busStationNum_parkNum_div', 'totalTradeMoney', 'tradeNewMeanPrice_totalNewTradeMoney_div', 'tradeSecNum_totalWorkers_multiply']
+# features=['now_build_interval', 'area', 'tradeMeanPrice_area_multiply', 'totalFloor', 'tradeNewMeanPrice_area_multiply', 'tradeMeanPrice_area_div', 'totalTradeMoney_area_multiply', 'houseType_wei', 'totalTradeArea_area_multiply', 'now_trade_interval', 'totalTradeArea_area_div', 'houseType_shi', 'totalTradeMoney_area_div', 'tradeNewMeanPrice_area_div', 'houseToward', 'totalNewTradeMoney_area_div', 'houseFloor', 'totalNewTradeMoney_area_multiply', 'totalNewTradeArea_area_multiply', 'plate', 'houseType_ting', 'totalNewTradeArea_area_diff', 'totalNewTradeArea_area_div', 'houseDecoration', 'houseType', 'tradeMeanPrice_tradeNewMeanPrice_diff', 'pv_uv_div', 'tradeMeanPrice_area_diff', 'rentType', 'totalNewTradeArea_area_sum', 'totalTradeArea_tradeMeanPrice_diff', 'tradeMeanPrice_totalTradeMoney_multiply', 'totalTradeArea_totalTradeMoney_div', 'tradeSecNum_newWorkers_sum', 'tradeSecNum_totalWorkers_div', 'tradeNewMeanPrice_area_diff', 'tradeMeanPrice_tradeNewMeanPrice_sum', 'busStationNum_gymNum_div', 'saleSecHouseNum_privateSchoolNum_diff', 'remainNewNum_totalWorkers_multiply', 'busStationNum_tradeSecNum_diff', 'gymNum_bankNum_div', 'pv', 'totalTradeArea_tradeMeanPrice_sum', 'drugStoreNum_gymNum_div', 'shopNum_superMarketNum_div', 'busStationNum_parkNum_div', 'totalTradeMoney', 'tradeNewMeanPrice_totalNewTradeMoney_div', 'tradeSecNum_totalWorkers_multiply']
 
 X = train[features].values
 y = train['tradeMoney'].values
@@ -45,7 +45,7 @@ for train_index, test_index in kf.split(X, y):
         #                     learning_rate=0.02,
         #                     n_estimators=2000
         #                     boosting_type='dart',n_estimators=15000,num_leaves=100,max_depth=12
-        objective='regression', num_leaves=50,
+        objective='regression', num_leaves=900,
         learning_rate=0.02, n_estimators=2000, bagging_fraction=0.7,
         feature_fraction=0.6, reg_alpha=0.3, reg_lambda=0.3,
         min_data_in_leaf=18, min_sum_hessian_in_leaf=0.001,n_jobs=-1)
