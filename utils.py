@@ -11,7 +11,7 @@ import numpy as np
 
 
 # 定义评价函数
-def score(y_pred, y_true):
-    y_true = y_true.get_label()
+def my_score(y_pred, y_true):
+    # y_true = y_true.get_label()
     return 'my_score', 1 - np.sum((y_pred - y_true) ** 2) / np.sum((y_pred - np.mean(y_true)) ** 2), True
 

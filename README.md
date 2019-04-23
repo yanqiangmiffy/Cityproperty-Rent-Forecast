@@ -20,6 +20,18 @@ numerical_feas=['ID','area','totalFloor','saleSecHouseNum','subwayStationNum',
     'totalNewTradeArea','tradeNewMeanPrice','tradeNewNum','remainNewNum','supplyNewNum',
     'supplyLandNum','supplyLandArea','tradeLandNum','tradeLandArea','landTotalPrice',
     'landMeanPrice','totalWorkers','newWorkers','residentPopulation','pv','']
-    
+```
 
+```python
+# df['stationNum'] = df['subwayStationNum'] + df['busStationNum']
+# df['schoolNum'] = df['interSchoolNum'] + df['schoolNum'] + df['privateSchoolNum']
+# df['medicalNum'] = df['hospitalNum'] + df['drugStoreNum']
+# df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'] + df['mallNum'] + df['superMarketNum']
+# df['landSupplyTradeRatio'] = df['supplyLandArea'] / df['tradeLandArea']
+
+# df = df.drop(['subwayStationNum', 'busStationNum',
+#               'interSchoolNum', 'schoolNum', 'privateSchoolNum',
+#               'hospitalNum', 'drugStoreNum',
+#               'gymNum', 'bankNum', 'shopNum', 'parkNum', 'mallNum', 'superMarketNum',
+#               'supplyLandArea', 'tradeLandArea'], axis=1)
 ```

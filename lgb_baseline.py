@@ -7,12 +7,77 @@
 @time: 2019-04-23 15:18
 @description: lgb 模型
 """
-
+import numpy as np
+import pandas as pd
+import time
 from lightgbm import LGBMRegressor
 from sklearn.metrics import r2_score
-from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import KFold
 from gen_feas import load_data
+from utils import my_score
 
-train,test,no_features,features=load_data()
+train, test, no_features, features = load_data()
 print(train.head())
 print(len(features))
+
+X = train[features].values
+y = train['tradeMoney'].values/100
+test_data = train[features].values
+
+res_list = []
+scores_list = []
+
+print("start：********************************")
+start = time.time()
+kf = KFold(n_splits=5, shuffle=True, random_state=2019)
+for train_index, test_index in kf.split(X, y):
+    x_train, y_train = X[train_index], y[train_index]
+    x_valid, y_valid = X[test_index], y[test_index]
+
+    clf = LGBMRegressor(
+        # boosting_type='gbdt',
+        #                     num_leaves=64,
+        #                     # max_depth=5,
+        #                     learning_rate=0.02,
+        #                     n_estimators=2000
+        #                     boosting_type='dart',n_estimators=15000,num_leaves=100,max_depth=12
+        objective='regression', num_leaves=900,
+        learning_rate=0.1, n_estimators=200, bagging_fraction=0.7,
+        feature_fraction=0.6, reg_alpha=0.3, reg_lambda=0.3,
+        min_data_in_leaf=18, min_sum_hessian_in_leaf=0.001)
+    clf.fit(x_train, y_train,
+            eval_set=[(x_valid, y_valid)],
+            eval_metric=my_score,
+            # early_stopping_rounds=100,
+            verbose=True)
+
+    # 验证集测试
+    valid_pred = clf.predict(x_valid)
+    score = r2_score(y_valid, valid_pred)
+    print("------------ r2_score:", score)
+    scores_list.append(score)
+
+    # 测试集预测
+    pred = clf.predict(test_data)
+    res_list.append(pred)
+
+print('......................validate result mean :', np.mean(scores_list))
+end = time.time()
+print("......................run with time: ", (end - start) / 60.0)
+print("over:*********************************")
+
+# 11.5折结果均值融合，并保存文件
+mean_auc = np.mean(scores_list)
+print("mean auc:", mean_auc)
+filepath = 'output/lgb_' + str(mean_auc) + '.csv'  # 线下平均分数
+
+# 转为array
+res = np.array(res_list)
+print("总的结果：", res.shape)
+# 最后结果平均，mean
+r = res.mean(axis=0)
+print('result shape:', r.shape)
+result = pd.DataFrame()
+# result['ID'] = test_id
+result['p'] = r*100
+result.to_csv(filepath, header=False, index=False, sep=",")
