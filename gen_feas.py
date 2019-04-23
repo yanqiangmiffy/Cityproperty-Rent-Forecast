@@ -62,6 +62,8 @@ for col in categorical_feas:
 #               'hospitalNum', 'drugStoreNum',
 #               'gymNum', 'bankNum', 'shopNum', 'parkNum', 'mallNum', 'superMarketNum',
 #               'supplyLandArea', 'tradeLandArea'], axis=1)
+
+
 df[:20].to_csv('input/df.csv', index=False)
 
 

@@ -1,85 +1,25 @@
+
+# 2019 未来杯高校AI挑战赛 房屋租金预测
+* 战队编号：{007}
+* 战队名称: {致Great}
+* 战队成员：{致Great}
+
+## 数据集
+
+- 类别行数据
+```text
+categorical_feas = ['rentType', 'houseType', 'houseFloor', 'region', 'plate', 'houseToward', 'houseDecoration',
+    'communityName','city','region','plate','buildYear']
 ```
-本文档模板仅供参考，参赛选手可根据实际需要增删和修改。
+- 数值型数据
+```text
+numerical_feas=['ID','area','totalFloor','saleSecHouseNum','subwayStationNum',
+    'busStationNum','interSchoolNum','schoolNum','privateSchoolNum','hospitalNum',
+    'drugStoreNum','gymNum','bankNum','shopNum','parkNum','mallNum','superMarketNum',
+    'totalTradeMoney','totalTradeArea','tradeMeanPrice'，'tradeSecNum','totalNewTradeMoney',
+    'totalNewTradeArea','tradeNewMeanPrice','tradeNewNum','remainNewNum','supplyNewNum',
+    'supplyLandNum','supplyLandArea','tradeLandNum','tradeLandArea','landTotalPrice',
+    'landMeanPrice','totalWorkers','newWorkers','residentPopulation','pv','']
+    
+
 ```
-
-# 2019 未来杯高校AI挑战赛 区域赛作品
-
-* 战队编号：{战队编号}
-* 战队名称: {战队名称}
-* 战队成员：{战队成员}
-
-## 概述
-
-简述所采用的架构、模型和方法。
-
-## 系统要求
-
-### 硬件环境要求
-
-* CPU:
-* GPU:
-* 内存:
-* 硬盘:
-* 其他:
-
-### 软件环境要求
-
-* 操作系统: {name} {version}
-* {name} {version}
-* {name} {version}
-* {name} {version}
-* {name} {version}
-
-如有特殊编译/安装步骤，请列明。
-
-### 数据集
-
-如使用官方提供的数据集之外的数据，请在此说明。
-
-## 数据预处理
-
-### 方法概述
-...
-
-### 操作步骤
-...
-```
-cmd
-```
-### 模型
-
-训练后的模型存储地址：
-
-模型文件大小：
-
-
-
-## 训练
-
-### 训练方法概述
-
-...
-
-### 训练操作步骤
-...
-```
-cmd
-```
-
-### 训练结果保存与获取
-
-...
-
-## 测试
-
-### 方法概述
-...
-
-### 操作步骤
-...
-```
-cmd
-```
-
-## 其他
-...
