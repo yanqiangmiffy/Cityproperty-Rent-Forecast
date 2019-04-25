@@ -40,3 +40,10 @@ numerical_feas=['ID','area','totalFloor','saleSecHouseNum','subwayStationNum',
 
 - lgb+使用基本特征：0.839340	
 - lgb+特征工程：
+
+### 特征工程技巧
+
+- 数据预处理
+    - 缺失数据：删除，填补(使用上下值、平均值、中位数、众数填充；根据数据之间的关联性进行填充)
+    - 类别数据：one-hot编码、具有大小次序的编码
+    - 数值型数据：

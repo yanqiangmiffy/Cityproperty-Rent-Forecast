@@ -18,23 +18,12 @@ from itertools import combinations
 # df['interval']=(now-df['tradeTime']).dt.days
 # no_features = ['ID', 'tradeTime', 'tradeMoney',]
 df_train = pd.read_csv('input/train_data.csv')
-print("filter before:",len(df_train))
-df_train = df_train.query("tradeMoney>=1000&tradeMoney<15000") # 线下0.87 线上0.86
-# df_train = df_train.query("tradeMoney>=500&tradeMoney<40000")#线下0.8816  线上0.84
-# df_train = df_train.query("tradeMoney>=500&tradeMoney<25000")# 线下 0.8857
-# df_train = df_train.query("tradeMoney>=500&tradeMoney<20000") # 线下 0.8836
-# df_train = df_train.query("tradeMoney>=500&tradeMoney<18000") # 线下 0.867
-# df_train = df_train.query("tradeMoney>=800&tradeMoney<16000") # 线下 lgb_0.8757434770663066
-# df_train = df_train.query("tradeMoney>=900&tradeMoney<16000") # 线下 lgb_0.876612870005764
-
-print("filter after:",len(df_train))
-
+df_train = df_train.query("tradeMoney>=1000&tradeMoney<15000")
 df_test = pd.read_csv('input/test_a.csv')
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
 
 # 数据预处理
 df['rentType'] = df['rentType'].replace('--', '未知方式')
-
 house_type_nums = df['houseType'].value_counts().to_dict()
 
 
@@ -67,10 +56,17 @@ def check_type(x):
 
 df['houseType'] = df['houseType'].apply(lambda x: check_type(x))
 
-# 交易至今的天数
+# 时间特征
 now = datetime.now()
 df['tradeTime'] = pd.to_datetime(df['tradeTime'])
 df['now_trade_interval'] = (now - df['tradeTime']).dt.days
+
+# 我们使用get_dummies()进行编码或者label
+# df['tradeTime_month'] = df['tradeTime'].dt.month
+# [(month % 12 + 3) // 3 for month in range(1, 13)]
+# df['tradeTime_season'] = df['tradeTime_month'].apply(lambda month: (month % 12 + 3) // 3)
+
+# df = pd.get_dummies(df, columns=['tradeTime_month', 'tradeTime_season'])
 
 df['buildYear'] = df['buildYear'].replace('暂无信息', 0)
 df['buildYear'] = df['buildYear'].astype(int)
@@ -89,7 +85,17 @@ for col in categorical_feas:
     df[col] = le.fit_transform(df[col])
     # df[col] = df[col].astype('category')
 
-# 添加组合特征
+# # 添加组合特征
+# relate_pairs=df.loc[:,'saleSecHouseNum':'now_build_interval'].columns.tolist()+['area','totalFloor']
+# relate_pairs.remove('tradeTime')
+# print(relate_pairs)
+# for rv in combinations(relate_pairs, 2):
+#     rv2 = '_'.join(rv)
+#     df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
+#     df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
+#     df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
+#     df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
+
 relate_pairs1 = ['saleSecHouseNum', 'subwayStationNum', 'busStationNum', 'interSchoolNum', 'schoolNum',
                  'privateSchoolNum', 'hospitalNum', 'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum',
                  'mallNum', 'superMarketNum', 'tradeSecNum', 'tradeNewNum', 'remainNewNum',
