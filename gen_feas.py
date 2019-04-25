@@ -18,16 +18,16 @@ from itertools import combinations
 # df['interval']=(now-df['tradeTime']).dt.days
 # no_features = ['ID', 'tradeTime', 'tradeMoney',]
 df_train = pd.read_csv('input/train_data.csv')
-print("filter before:",len(df_train))
-df_train = df_train.query("tradeMoney>=1000&tradeMoney<15000") # 线下0.87 线上0.86
+print("filter before:", len(df_train))
+# df_train = df_train.query("tradeMoney>=1000&tradeMoney<15000") # 线下0.87 线上0.86
 # df_train = df_train.query("tradeMoney>=500&tradeMoney<40000")#线下0.8816  线上0.84
 # df_train = df_train.query("tradeMoney>=500&tradeMoney<25000")# 线下 0.8857
 # df_train = df_train.query("tradeMoney>=500&tradeMoney<20000") # 线下 0.8836
 # df_train = df_train.query("tradeMoney>=500&tradeMoney<18000") # 线下 0.867
 # df_train = df_train.query("tradeMoney>=800&tradeMoney<16000") # 线下 lgb_0.8757434770663066
-# df_train = df_train.query("tradeMoney>=900&tradeMoney<16000") # 线下 lgb_0.876612870005764
+df_train = df_train.query("tradeMoney>=900&tradeMoney<16000")  # 线下 lgb_0.876612870005764
 
-print("filter after:",len(df_train))
+print("filter after:", len(df_train))
 
 df_test = pd.read_csv('input/test_a.csv')
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
@@ -74,7 +74,34 @@ df['now_trade_interval'] = (now - df['tradeTime']).dt.days
 
 df['buildYear'] = df['buildYear'].replace('暂无信息', 0)
 df['buildYear'] = df['buildYear'].astype(int)
-df['buildYear'] = df['buildYear'].replace(0, int(df['buildYear'].mean()))
+# 直接使用小区的构建年份填充暂无信息
+# df['buildYear_allmean'] = df['buildYear'].replace(0, int(df['buildYear'].mean()))
+
+buildyear_median = dict()
+buildyear_mean = dict()
+buildyear_mode = dict()
+for index, group in df[['region', 'buildYear']].groupby("region"):
+    buildyear_median[index] = int(group['buildYear'].median())
+    buildyear_mean[index] = int(group['buildYear'].median())
+    buildyear_mode[index] = int(group['buildYear'].median())
+    # print(index,group['buildYear'].median())
+    # print(index,group['buildYear'].mean())
+    # print(index,group['buildYear'].mode())
+
+
+def replace_zero(row):
+    # if row.buildYear == 0:
+    #     return buildyear_median[row.region]
+    # if row.buildYear == 0:
+    #     return buildyear_mean[row.region]
+    if row.buildYear == 0:
+        return buildyear_mode[row.region]
+    else:
+        return row.buildYear
+
+
+# 使用相同板块内的中位数年份、平均数年份、众数年份
+df['buildYear'] = df.apply(lambda row: replace_zero(row), axis=1)
 df['now_build_interval'] = 2019 - df['buildYear']
 
 # 缺失值处理
@@ -126,6 +153,13 @@ for rv in combinations(too_many_zeros, 2):
     df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
     df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
     df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
+
+# 其他特征
+df['stationNum'] = df['subwayStationNum'] + df['busStationNum']
+df['schoolNum'] = df['interSchoolNum'] + df['schoolNum'] + df['privateSchoolNum']
+df['medicalNum'] = df['hospitalNum'] + df['drugStoreNum']
+df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'] + df['mallNum'] + df['superMarketNum']
+df['landSupplyTradeRatio'] = df['supplyLandArea'] / df['tradeLandArea']
 
 # 特征工程
 no_features = ['ID', 'tradeTime', 'tradeMoney',
