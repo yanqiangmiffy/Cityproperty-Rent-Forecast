@@ -46,4 +46,8 @@ numerical_feas=['ID','area','totalFloor','saleSecHouseNum','subwayStationNum',
 - 数据预处理
     - 缺失数据：删除，填补(使用上下值、平均值、中位数、众数填充；根据数据之间的关联性进行填充)
     - 类别数据：one-hot编码、具有大小次序的编码
-    - 数值型数据：
+    - 数值型数据：归一化、标准化
+    
+- 构造特征
+    - rank特征：提高鲁莽性 pd.rank()
+    

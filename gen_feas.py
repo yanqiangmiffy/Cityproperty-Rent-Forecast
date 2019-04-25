@@ -160,6 +160,20 @@ df['schoolNum'] = df['interSchoolNum'] + df['schoolNum'] + df['privateSchoolNum'
 df['medicalNum'] = df['hospitalNum'] + df['drugStoreNum']
 df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'] + df['mallNum'] + df['superMarketNum']
 df['landSupplyTradeRatio'] = df['supplyLandArea'] / df['tradeLandArea']
+# 对数值型的特征，处理为rank特征（鲁棒性好一点）
+# numerical_features=df.loc[:,'saleSecHouseNum':'now_build_interval'].columns.tolist()+['area','totalFloor']
+# for feat in numerical_features:
+#     df[feat] = df[feat].rank() / float(df.shape[0]) # 排序，并且进行归一化
+# rank_feas=['totalTradeMoney']
+# df['totalTradeMoney']=df['totalTradeMoney'].rank()
+# print(df['totalTradeMoney'])
+
+# 重要特征
+df['area_floor_ratio']=df['area']/df['totalFloor']
+df['tradeMeanPrice_new_ratio']=df['tradeMeanPrice']/df['tradeNewMeanPrice']
+df['tradeMeanPrice_new_sum']=df['tradeMeanPrice']+df['tradeNewMeanPrice']+df['totalTradeMoney']
+df['uv_pv_ratio']=df['uv']/df['pv']
+df['uv_pv_sum']=df['uv']+df['pv']
 
 # 特征工程
 no_features = ['ID', 'tradeTime', 'tradeMoney',
