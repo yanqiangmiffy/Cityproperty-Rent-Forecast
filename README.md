@@ -50,4 +50,4 @@ numerical_feas=['ID','area','totalFloor','saleSecHouseNum','subwayStationNum',
     
 - 构造特征
     - rank特征：提高鲁莽性 pd.rank()
-    
+    - k-means：聚类特征
