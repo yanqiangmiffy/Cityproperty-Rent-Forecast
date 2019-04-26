@@ -29,6 +29,10 @@ X = train[features].values
 y = train['tradeMoney'].values
 test_data = test[features].values
 
+valid_id=[]
+valid_index=[]
+valid_list=[]
+valid_pred_list=[]
 res_list = []
 scores_list = []
 
@@ -38,7 +42,7 @@ kf = KFold(n_splits=5, shuffle=True, random_state=2019)
 for train_index, test_index in kf.split(X, y):
     x_train, y_train = X[train_index], y[train_index]
     x_valid, y_valid = X[test_index], y[test_index]
-
+    valid_id.extend(list(train.ID[test_index].values))
     clf = LGBMRegressor(
         # boosting_type='gbdt',
         #                     num_leaves=64,
@@ -57,6 +61,9 @@ for train_index, test_index in kf.split(X, y):
             verbose=True)
     # 验证集测试
     valid_pred = clf.predict(x_valid)
+    valid_index.extend(list(test_index))
+    valid_list.extend(list(y_valid))
+    valid_pred_list.extend(list(valid_pred))
     score = r2_score(y_valid, valid_pred)
     print("------------ r2_score:", score)
     scores_list.append(score)
@@ -95,3 +102,16 @@ plt.title('LightGBM Features (avg over folds)')
 plt.tight_layout()
 plt.savefig('lgbm_importances-01.png')
 plt.show()
+
+
+raw_df=pd.read_csv('input/train_data.csv')
+
+valid_df=pd.DataFrame()
+valid_df['ID']=valid_id
+# valid_df['test_index']=valid_index
+# valid_df['valid_tradeMoney']=valid_list
+valid_df['pred_tradeMoney']=valid_pred_list
+# valid_df.to_csv('output/valid.csv')
+
+full_df=pd.merge(raw_df,valid_df,on="ID")
+full_df.to_csv('output/full_df.csv',index=None)

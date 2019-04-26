@@ -13,6 +13,7 @@ import datetime
 from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
 from itertools import combinations
+from sklearn.cluster import KMeans
 
 # df['tradeTime']=pd.to_datetime(df['tradeTime'])
 # df['interval']=(now-df['tradeTime']).dt.days
@@ -27,7 +28,11 @@ print("filter before:", len(df_train))
 # df_train = df_train.query("tradeMoney>=800&tradeMoney<16000") # 线下 lgb_0.8757434770663066
 df_train = df_train.query("tradeMoney>=900&tradeMoney<16000")  # 线下 lgb_0.876612870005764
 
-print("filter after:", len(df_train))
+print("filter tradeMoney after:", len(df_train))
+df_train = df_train.query("area>=10&area<=200")  # 线下 lgb_0.876612870005764
+print("filter area after:", len(df_train))
+
+
 
 df_test = pd.read_csv('input/test_a.csv')
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
@@ -169,11 +174,31 @@ df['landSupplyTradeRatio'] = df['supplyLandArea'] / df['tradeLandArea']
 # print(df['totalTradeMoney'])
 
 # 重要特征
-df['area_floor_ratio']=df['area']/df['totalFloor']
-df['tradeMeanPrice_new_ratio']=df['tradeMeanPrice']/df['tradeNewMeanPrice']
-df['tradeMeanPrice_new_sum']=df['tradeMeanPrice']+df['tradeNewMeanPrice']+df['totalTradeMoney']
-df['uv_pv_ratio']=df['uv']/df['pv']
-df['uv_pv_sum']=df['uv']+df['pv']
+df['area_floor_ratio'] = df['area'] / df['totalFloor']
+df['tradeMeanPrice_new_ratio'] = df['tradeMeanPrice'] / df['tradeNewMeanPrice']
+df['tradeMeanPrice_new_sum'] = df['tradeMeanPrice'] + df['tradeNewMeanPrice'] + df['totalTradeMoney']
+df['uv_pv_ratio'] = df['uv'] / df['pv']
+df['uv_pv_sum'] = df['uv'] + df['pv']
+
+# 聚类特征
+house_cols = ['area', 'rentType', 'houseType_shi', 'houseType_ting', 'houseType_wei', 'houseType', 'houseFloor',
+              'totalFloor', 'houseToward', 'houseDecoration']
+km = KMeans(n_clusters=5)
+km.fit(df[house_cols])
+df['house_clster'] = km.predict(df[house_cols])
+
+life_cols = ['saleSecHouseNum', 'subwayStationNum', 'busStationNum', 'interSchoolNum', 'schoolNum', 'privateSchoolNum',
+              'hospitalNum', 'drugStoreNum', 'gymNum', 'bankNum','shopNum','parkNum','mallNum','superMarketNum']
+km = KMeans(n_clusters=3)
+km.fit(df[life_cols])
+df['life_clster'] = km.predict(df[life_cols])
+
+trade_cols=['totalTradeMoney','totalTradeArea','tradeMeanPrice','tradeSecNum','totalNewTradeMoney','totalNewTradeArea',
+            'tradeNewMeanPrice','tradeNewNum']
+km = KMeans(n_clusters=3)
+km.fit(df[trade_cols])
+df['trade_clster'] = km.predict(df[trade_cols])
+
 
 # 特征工程
 no_features = ['ID', 'tradeTime', 'tradeMoney',
