@@ -26,13 +26,16 @@ print("filter before:", len(df_train))
 # df_train = df_train.query("tradeMoney>=500&tradeMoney<20000") # 线下 0.8836
 # df_train = df_train.query("tradeMoney>=500&tradeMoney<18000") # 线下 0.867
 # df_train = df_train.query("tradeMoney>=800&tradeMoney<16000") # 线下 lgb_0.8757434770663066
-df_train = df_train.query("tradeMoney>=900&tradeMoney<16000")  # 线下 lgb_0.876612870005764
+df_train = df_train.query("500<=tradeMoney<20000")  # 线下 lgb_0.876612870005764
 
 print("filter tradeMoney after:", len(df_train))
-df_train = df_train.query("area>=10&area<=200")  # 线下 lgb_0.876612870005764
+# df_train = df_train.query("10<=area<=200")  # 线下 lgb_0.8830538988139025 线上0.867
+df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
 
-
+df_train['area_money']=df_train['tradeMoney']/df_train['area']
+df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
+print("filter area/money after:", len(df_train))
 
 df_test = pd.read_csv('input/test_a.csv')
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
@@ -114,13 +117,14 @@ df['pv'] = df['pv'].fillna(value=int(df['pv'].median()))
 df['uv'] = df['uv'].fillna(value=int(df['uv'].median()))
 
 # 类别特征 具有大小关系编码
-categorical_feas = ['rentType', 'houseType', 'houseFloor', 'region', 'plate', 'houseToward', 'houseDecoration']
+com_categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration']
 
-for col in categorical_feas:
+for col in com_categorical_feas:
     le = LabelEncoder()
     df[col] = le.fit_transform(df[col])
     # df[col] = df[col].astype('category')
-
+categorical_feas=['region', 'plate']
+df=pd.get_dummies(df,columns=categorical_feas)
 # # 添加组合特征
 # relate_pairs1 = ['saleSecHouseNum', 'subwayStationNum', 'busStationNum', 'interSchoolNum', 'schoolNum',
 #                  'privateSchoolNum', 'hospitalNum', 'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum',
@@ -202,7 +206,7 @@ df['trade_clster'] = km.predict(df[trade_cols])
 
 # 特征工程
 no_features = ['ID', 'tradeTime', 'tradeMoney',
-               'buildYear', 'communityName', 'city'
+               'buildYear', 'communityName', 'city','area_money'
                ]
 
 # no_features = no_features + too_many_zeros
