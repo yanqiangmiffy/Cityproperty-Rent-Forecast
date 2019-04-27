@@ -50,7 +50,7 @@ for train_index, test_index in kf.split(X, y):
         #                     learning_rate=0.02,
         #                     n_estimators=2000
         #                     boosting_type='dart',n_estimators=15000,num_leaves=100,max_depth=12
-        objective='regression', num_leaves=900,
+        objective='regression', num_leaves=90,
         learning_rate=0.02, n_estimators=2000, bagging_fraction=0.7,
         feature_fraction=0.6, reg_alpha=0.3, reg_lambda=0.3,
         min_data_in_leaf=18, min_sum_hessian_in_leaf=0.001, n_jobs=-1)
