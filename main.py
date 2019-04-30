@@ -10,6 +10,7 @@ import os
 import gc
 from sklearn.metrics import r2_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from utils import xgb_score
 
 import lightgbm as lgb
 from datetime import datetime
@@ -210,7 +211,7 @@ def xgb_model(X_train, y_train, X_test, y_test):
     watchlist = [(trn_data, 'train'), (val_data, 'valid_data')]
 
     clf = xgb.train(dtrain=trn_data, num_boost_round=100000, evals=watchlist, early_stopping_rounds=200,
-                    verbose_eval=100, params=xgb_params)
+                    verbose_eval=100, feval=xgb_score,params=xgb_params)
 
     return clf
 
@@ -231,7 +232,7 @@ def xgb_model_re(X_train, y_train, X_test, y_test):
                              seed=42,
                              silent=1)
 
-    model = model.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_test, y_test)], early_stopping_rounds=30,
+    model = model.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_test, y_test)], eval_metric=xgb_score,early_stopping_rounds=30,
                       verbose=1)
     return model
 
@@ -249,7 +250,7 @@ def xgb_model_bs(X_train, y_train, X_test, y_test):
                                subsample=0.7,
                                silent=1,
                                n_jobs=-1)
-    model = model.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_test, y_test)], early_stopping_rounds=100,
+    model = model.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_test, y_test)],eval_metric=xgb_score, early_stopping_rounds=100,
                       verbose=1)
 
     return model
