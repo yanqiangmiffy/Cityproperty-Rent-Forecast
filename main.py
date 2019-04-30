@@ -26,8 +26,8 @@ scaler = StandardScaler()
 # #设置value的显示长度为100，默认为50
 # pd.set_option('max_colwidth',100)
 
-train = pd.read_csv('../data/train_data.csv', parse_dates=['tradeTime'])
-test = pd.read_csv('../data/test_a.csv', parse_dates=['tradeTime'])
+train = pd.read_csv('input/train_data.csv', parse_dates=['tradeTime'])
+test = pd.read_csv('input/test_a.csv', parse_dates=['tradeTime'])
 
 train = train[train['tradeMoney'] <= 100000].reset_index(drop=True)
 train = train[train['tradeMoney'] >= 500].reset_index(drop=True)
@@ -265,7 +265,7 @@ print(list(train.columns))
 # xgb_model_re
 sub, oof = get_result(train, test, label, xgb_model, need_sca=True, splits_nums=3)
 # print(sub.sort_values('tradeMoney').reset_index(drop=True))
-sub[['tradeMoney']].to_csv('../result/sub.csv', index=None, header=False)
+sub[['tradeMoney']].to_csv('output/xgb.csv', index=None, header=False)
 
 
 
