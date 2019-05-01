@@ -27,16 +27,16 @@ print("filter tradeMoney before:", len(df_train))
 # df_train = df_train.query("tradeMoney>=800&tradeMoney<16000") # 线下 lgb_0.8757434770663066
 df_train = df_train.query("500<=tradeMoney<20000")  # 线下 lgb_0.876612870005764
 
-print("filter area after:", len(df_train))
-df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
-print("filter area after:", len(df_train))
+# print("filter area after:", len(df_train))
+# df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
+# print("filter area after:", len(df_train))
 #
 # df_train['area_money']=df_train['tradeMoney']/df_train['area']
 # df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
 # print("filter area/money after:", len(df_train))
 
 #
-# # totalFloor
+# totalFloor
 # print("filter totalFloor after:", len(df_train))
 # df_train = df_train.query("2<=totalFloor<=53")
 # print("filter totalFloor after:", len(df_train))
