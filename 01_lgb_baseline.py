@@ -100,7 +100,7 @@ plt.figure(figsize=(20, 10))
 sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value", ascending=False)[:50])
 plt.title('LightGBM Features (avg over folds)')
 plt.tight_layout()
-plt.savefig('lgbm_importances-01.png')
+plt.savefig('other/lgbm_importances-01.png')
 plt.show()
 
 
