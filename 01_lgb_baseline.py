@@ -28,10 +28,12 @@ X = train[features].values
 y = train['tradeMoney'].values
 test_data = test[features].values
 
+# 训练集的预测结果
 valid_id=[]
 valid_index=[]
 valid_list=[]
 valid_pred_list=[]
+
 res_list = []
 scores_list = []
 
