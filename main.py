@@ -122,19 +122,5 @@ def xgb_model_bs(X_train, y_train, X_test, y_test):
     return model
 
 
-print(list(train.columns))
-# print(list(test.columns))
-
-# print(label)
-
-# xgb_model_re
 sub, oof = get_result(train, test, label, xgb_model, need_sca=True, splits_nums=3)
-# print(sub.sort_values('tradeMoney').reset_index(drop=True))
 sub[['tradeMoney']].to_csv('output/xgb.csv', index=None, header=False)
-
-# score list: [0.8834834505610115, 0.8248506813617509, 0.8539747905133632]  0.8541029741453752
-
-# 0.8540411313811912
-
-# score list: [0.8400237238337294, 0.897801296556761, 0.8906870036577093]
-# 0.8761706746827332
