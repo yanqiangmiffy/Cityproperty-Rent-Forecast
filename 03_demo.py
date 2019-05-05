@@ -13,16 +13,6 @@ import lightgbm as lgb
 import xgboost as xgb
 from sklearn.linear_model import BayesianRidge
 from sklearn.model_selection import KFold, RepeatedKFold
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
-from scipy import sparse
-import warnings
-import time
-import sys
-import os
-import re
-import datetime
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.metrics import mean_squared_error
 from gen_feas import load_data
 
@@ -88,6 +78,7 @@ for fold_, (trn_idx, val_idx) in enumerate(folds.split(X_train, y_train)):
     predictions_xgb += clf.predict(xgb.DMatrix(X_test), ntree_limit=clf.best_ntree_limit) / folds.n_splits
 
 print("CV score: {:<8.8f}".format(mean_squared_error(oof_xgb, target)))
+
 
 # --------bayes-----------
 # 将lgb和xgb的结果进行stacking

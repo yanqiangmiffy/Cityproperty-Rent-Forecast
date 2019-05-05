@@ -3,3 +3,4 @@ notes/.ipynb_checkpoints/
 **__pycache__
 input/df.csv
 output/full_df.csv
+output/xgb_df.csv
