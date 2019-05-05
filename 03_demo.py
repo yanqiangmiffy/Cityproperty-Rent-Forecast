@@ -16,7 +16,7 @@ from catboost import CatBoostRegressor
 from sklearn.model_selection import KFold, RepeatedKFold
 from sklearn.metrics import mean_squared_error
 # from gen_feas import load_data
-from feas.gen_feas5 import load_data
+from gen_feas import load_data
 from utils import xgb_score, my_score, lgb_score
 
 train, test, no_features, features = load_data()
