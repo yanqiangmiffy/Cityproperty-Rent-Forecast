@@ -148,43 +148,7 @@ df['uv'] = df['uv'].fillna(value=int(df['uv'].median()))
 #     # df[col] = df[col].astype('category')
 categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region', 'plate']
 df = pd.get_dummies(df, columns=categorical_feas)
-# 添加组合特征
-relate_pairs1 = ['saleSecHouseNum', 'subwayStationNum', 'busStationNum', 'interSchoolNum', 'schoolNum',
-                 'privateSchoolNum', 'hospitalNum', 'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum',
-                 'mallNum', 'superMarketNum', 'tradeSecNum', 'tradeNewNum', 'remainNewNum',
-                 'supplyNewNum', 'totalWorkers', 'newWorkers', 'residentPopulation']
-for rv in combinations(relate_pairs1, 2):
-    rv2 = '_'.join(rv)
-    df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
-    df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
-    df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
-    df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
 
-relate_pairs2 = ['totalTradeArea', 'tradeMeanPrice', 'totalTradeMoney', 'tradeNewMeanPrice', 'totalNewTradeArea',
-                 'totalNewTradeMoney', 'area']
-for rv in combinations(relate_pairs2, 2):
-    rv2 = '_'.join(rv)
-    df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
-    df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
-    df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
-    df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
-
-relate_pairs3 = ['pv', 'uv', 'lookNum']
-for rv in combinations(relate_pairs3, 2):
-    rv2 = '_'.join(rv)
-    df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
-    df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
-    df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
-    df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
-
-too_many_zeros = ['supplyLandNum', 'supplyLandArea', 'tradeLandNum',
-                  'tradeLandArea', 'landTotalPrice', 'landMeanPrice']
-for rv in combinations(too_many_zeros, 2):
-    rv2 = '_'.join(rv)
-    df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
-    df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
-    df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
-    df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
 
 # 其他特征
 df['stationNum'] = df['subwayStationNum'] + df['busStationNum']
