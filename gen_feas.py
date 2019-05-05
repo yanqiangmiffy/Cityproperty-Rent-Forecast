@@ -91,11 +91,11 @@ df['house_total_num'] = df['houseType_shi'] + df['houseType_ting'] + df['houseTy
 # df['houseType'] = df['houseType'].apply(lambda x: check_type(x))
 
 # 交易至今的天数
+df['交易月份'] = df['tradeTime'].apply(lambda x: int(x.split('/')[1]))
 now = datetime.now()
 df['tradeTime'] = pd.to_datetime(df['tradeTime'])
 df['now_trade_interval'] = (now - df['tradeTime']).dt.days
 
-df['交易月份'] = df['tradeTime'].apply(lambda x: int(x.split('/')[1]))
 
 # 我们使用get_dummies()进行编码或者label
 df['tradeTime_month'] = df['tradeTime'].dt.month
