@@ -95,6 +95,14 @@ now = datetime.now()
 df['tradeTime'] = pd.to_datetime(df['tradeTime'])
 df['now_trade_interval'] = (now - df['tradeTime']).dt.days
 
+df['交易月份'] = df['tradeTime'].apply(lambda x: int(x.split('/')[1]))
+
+# 我们使用get_dummies()进行编码或者label
+df['tradeTime_month'] = df['tradeTime'].dt.month
+# [(month % 12 + 3) // 3 for month in range(1, 13)]
+df['tradeTime_season'] = df['tradeTime_month'].apply(lambda month: (month % 12 + 3) // 3)
+df = pd.get_dummies(df, columns=['tradeTime_month', 'tradeTime_season'])
+
 df['buildYear'] = df['buildYear'].replace('暂无信息', 0)
 df['buildYear'] = df['buildYear'].astype(int)
 # 直接使用小区的构建年份填充暂无信息
