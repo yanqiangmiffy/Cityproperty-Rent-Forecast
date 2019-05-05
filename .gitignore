@@ -4,3 +4,4 @@ notes/.ipynb_checkpoints/
 input/df.csv
 output/full_df.csv
 output/xgb_df.csv
+catboost_info/
