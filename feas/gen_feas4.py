@@ -32,9 +32,9 @@ print("filter tradeMoney after:", len(df_train))
 df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
 
-# df_train['area_money']=df_train['tradeMoney']/df_train['area']
-# df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
-# print("filter area/money after:", len(df_train))
+df_train['area_money']=df_train['tradeMoney']/df_train['area']
+df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
+print("filter area/money after:", len(df_train))
 
 
 # # totalFloor
