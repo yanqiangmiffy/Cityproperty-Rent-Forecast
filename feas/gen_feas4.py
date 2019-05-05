@@ -16,8 +16,8 @@ from datetime import datetime
 from itertools import combinations
 from sklearn.cluster import KMeans
 
-df_train = pd.read_csv('../input/train_data.csv')
-df_test = pd.read_csv('../input/test_a.csv')
+df_train = pd.read_csv('input/train_data.csv')
+df_test = pd.read_csv('input/test_a.csv')
 
 print("filter tradeMoney before:", len(df_train))
 # df_train = df_train.query("tradeMoney>=1000&tradeMoney<15000") # 线下0.87 线上0.86
@@ -224,7 +224,7 @@ features = [fea for fea in df.columns if fea not in no_features]
 train, test = df[:len(df_train)], df[len(df_train):]
 
 print(train.shape, test.shape)
-df[:20].to_csv('../input/df.csv', index=False)
+df[:20].to_csv('input/df.csv', index=False)
 print(features)
 
 
