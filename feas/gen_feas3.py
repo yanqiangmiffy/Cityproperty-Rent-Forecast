@@ -3,7 +3,7 @@
 """
 @author:quincyqiang
 @license: Apache Licence
-@file: gen_feas.py
+@file: gen_feas4.py
 @time: 2019-04-22 18:26
 @description:
 """

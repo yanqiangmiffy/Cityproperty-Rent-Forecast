@@ -1,12 +1,13 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 _*-
-"""
-@author:quincyqiang
-@license: Apache Licence
+#!/usr/bin/env python  
+# -*- coding:utf-8 _*-  
+""" 
+@author:quincyqiang 
+@license: Apache Licence 
 @file: gen_feas4.py
-@time: 2019-04-22 18:26
+@time: 2019-05-05 19:57
 @description:
 """
+
 import pandas as pd
 import numpy as np
 import datetime
@@ -15,8 +16,8 @@ from datetime import datetime
 from itertools import combinations
 from sklearn.cluster import KMeans
 
-df_train = pd.read_csv('input/train_data.csv')
-df_test = pd.read_csv('input/test_a.csv')
+df_train = pd.read_csv('../input/train_data.csv')
+df_test = pd.read_csv('../input/test_a.csv')
 
 print("filter tradeMoney before:", len(df_train))
 # df_train = df_train.query("tradeMoney>=1000&tradeMoney<15000") # 线下0.87 线上0.86
@@ -27,16 +28,16 @@ print("filter tradeMoney before:", len(df_train))
 # df_train = df_train.query("tradeMoney>=800&tradeMoney<16000") # 线下 lgb_0.8757434770663066
 df_train = df_train.query("500<=tradeMoney<20000")  # 线下 lgb_0.876612870005764
 
-print("filter area after:", len(df_train))
+print("filter tradeMoney after:", len(df_train))
 df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
-#
+
 # df_train['area_money']=df_train['tradeMoney']/df_train['area']
 # df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
 # print("filter area/money after:", len(df_train))
 
-#
-# totalFloor
+
+# # totalFloor
 # print("filter totalFloor after:", len(df_train))
 # df_train = df_train.query("2<=totalFloor<=53")
 # print("filter totalFloor after:", len(df_train))
@@ -74,22 +75,22 @@ def split_type(x):
 
 df['houseType_shi'], df['houseType_ting'], df['houseType_wei'] = zip(*df['houseType'].apply(lambda x: split_type(x)))
 
-
-def check_type(x):
-    """
-    将房屋类型计数分箱
-    :param x:
-    :return:
-    """
-    if house_type_nums[x] >= 1000:
-        return "high_num"
-    elif 100 <= house_type_nums[x] < 1000:
-        return "median_num"
-    else:
-        return "low_num"
-
-
-df['houseType'] = df['houseType'].apply(lambda x: check_type(x))
+#
+# def check_type(x):
+#     """
+#     将房屋类型计数分箱
+#     :param x:
+#     :return:
+#     """
+#     if house_type_nums[x] >= 1000:
+#         return "high_num"
+#     elif 100 <= house_type_nums[x] < 1000:
+#         return "median_num"
+#     else:
+#         return "low_num"
+#
+#
+# df['houseType'] = df['houseType'].apply(lambda x: check_type(x))
 
 # 交易至今的天数
 now = datetime.now()
@@ -159,7 +160,8 @@ df['trade_clster'] = km.predict(df[trade_cols])
 #     le = LabelEncoder()
 #     df[col] = le.fit_transform(df[col])
 #     # df[col] = df[col].astype('category')
-categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region', 'plate']
+categorical_feas = ['communityName', 'rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region',
+                    'plate']
 df = pd.get_dummies(df, columns=categorical_feas)
 # # 添加组合特征
 # relate_pairs1 = ['saleSecHouseNum', 'subwayStationNum', 'busStationNum', 'interSchoolNum', 'schoolNum',
@@ -206,8 +208,8 @@ df['medicalNum'] = df['hospitalNum'] + df['drugStoreNum']
 df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'] + df['mallNum'] + df['superMarketNum']
 
 # 重要特征
-df['area_floor_ratio'] = df['area'] / (df['totalFloor']+1)
-df['uv_pv_ratio'] = df['uv'] / df['pv']+1
+df['area_floor_ratio'] = df['area'] / df['totalFloor']
+df['uv_pv_ratio'] = df['uv'] / df['pv']
 df['uv_pv_sum'] = df['uv'] + df['pv']
 
 # 特征工程
@@ -222,7 +224,7 @@ features = [fea for fea in df.columns if fea not in no_features]
 train, test = df[:len(df_train)], df[len(df_train):]
 
 print(train.shape, test.shape)
-df.to_csv('input/df.csv', index=False)
+df[:20].to_csv('../input/df.csv', index=False)
 print(features)
 
 

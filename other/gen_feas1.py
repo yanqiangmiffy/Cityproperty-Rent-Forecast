@@ -31,27 +31,27 @@ print("filter area after:", len(df_train))
 df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
 #
-# df_train['area_money']=df_train['tradeMoney']/df_train['area']
-# df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
-# print("filter area/money after:", len(df_train))
+df_train['area_money']=df_train['tradeMoney']/df_train['area']
+df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
+print("filter area/money after:", len(df_train))
 
-#
+
 # totalFloor
-# print("filter totalFloor after:", len(df_train))
-# df_train = df_train.query("2<=totalFloor<=53")
-# print("filter totalFloor after:", len(df_train))
-#
-# unique_comname = df_test['communityName'].unique()
-# print("filter communityName after:", len(df_train))
-# df_train = df_train[df_train['communityName'].isin(unique_comname)]
-# print("filter communityName after:", len(df_train))
-#
-# print("houseType")
-#
-# unique_house = df_test['houseType'].unique()
-# print("filter houseType after:", len(df_train))
-# df_train = df_train[df_train['houseType'].isin(unique_house)]
-# print("filter houseType after:", len(df_train))
+print("filter totalFloor after:", len(df_train))
+df_train = df_train.query("2<=totalFloor<=53")
+print("filter totalFloor after:", len(df_train))
+
+unique_comname = df_test['communityName'].unique()
+print("filter communityName after:", len(df_train))
+df_train = df_train[df_train['communityName'].isin(unique_comname)]
+print("filter communityName after:", len(df_train))
+
+print("houseType")
+
+unique_house = df_test['houseType'].unique()
+print("filter houseType after:", len(df_train))
+df_train = df_train[df_train['houseType'].isin(unique_house)]
+print("filter houseType after:", len(df_train))
 
 
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
@@ -132,35 +132,17 @@ df['now_build_interval'] = 2019 - df['buildYear']
 df['pv'] = df['pv'].fillna(value=int(df['pv'].median()))
 df['uv'] = df['uv'].fillna(value=int(df['uv'].median()))
 
-# 聚类特征
-# house_cols = ['area', 'rentType', 'houseType_shi', 'houseType_ting', 'houseType_wei', 'houseType', 'houseFloor',
-#               'totalFloor', 'houseToward', 'houseDecoration']
-# km = KMeans(n_clusters=5)
-# km.fit(df[house_cols])
-# df['house_clster'] = km.predict(df[house_cols])
 
-life_cols = ['saleSecHouseNum', 'subwayStationNum', 'busStationNum', 'interSchoolNum', 'schoolNum', 'privateSchoolNum',
-             'hospitalNum', 'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum', 'mallNum', 'superMarketNum']
-km = KMeans(n_clusters=3)
-km.fit(df[life_cols])
-df['life_clster'] = km.predict(df[life_cols])
-
-trade_cols = ['totalTradeMoney', 'totalTradeArea', 'tradeMeanPrice', 'tradeSecNum', 'totalNewTradeMoney',
-              'totalNewTradeArea',
-              'tradeNewMeanPrice', 'tradeNewNum']
-km = KMeans(n_clusters=3)
-km.fit(df[trade_cols])
-df['trade_clster'] = km.predict(df[trade_cols])
 
 # 类别特征 具有大小关系编码
-# com_categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration']
-#
-# for col in com_categorical_feas:
-#     le = LabelEncoder()
-#     df[col] = le.fit_transform(df[col])
-#     # df[col] = df[col].astype('category')
-categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region', 'plate']
-df = pd.get_dummies(df, columns=categorical_feas)
+com_categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration','region', 'plate']
+
+for col in com_categorical_feas:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
+    # df[col] = df[col].astype('category')
+# categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region', 'plate']
+# df = pd.get_dummies(df, columns=categorical_feas)
 # # 添加组合特征
 # relate_pairs1 = ['saleSecHouseNum', 'subwayStationNum', 'busStationNum', 'interSchoolNum', 'schoolNum',
 #                  'privateSchoolNum', 'hospitalNum', 'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum',
@@ -215,7 +197,6 @@ no_features = ['ID', 'tradeTime', 'tradeMoney',
                'buildYear', 'communityName', 'city', 'area_money'
                ]
 
-# no_features = no_features + too_many_zeros
 no_features = no_features
 
 features = [fea for fea in df.columns if fea not in no_features]
