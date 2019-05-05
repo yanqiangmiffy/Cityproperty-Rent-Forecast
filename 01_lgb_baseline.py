@@ -16,7 +16,7 @@ from lightgbm import LGBMRegressor
 from sklearn.metrics import r2_score
 from sklearn.model_selection import KFold
 # from gen_feas import load_data
-from feas.gen_feas5 import load_data
+from feas.gen_feas4 import load_data
 from utils import my_score
 
 train, test, no_features, features = load_data()
