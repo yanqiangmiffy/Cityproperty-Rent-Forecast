@@ -58,7 +58,6 @@ df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
 
 # 数据预处理
 df['rentType'] = df['rentType'].replace('--', '未知方式')
-house_type_nums = df['houseType'].value_counts().to_dict()
 
 
 def split_type(x):
@@ -73,29 +72,13 @@ def split_type(x):
 
 df['houseType_shi'], df['houseType_ting'], df['houseType_wei'] = zip(*df['houseType'].apply(lambda x: split_type(x)))
 df['house_total_num'] = df['houseType_shi'] + df['houseType_ting'] + df['houseType_wei']
-
-# def check_type(x):
-#     """
-#     将房屋类型计数分箱
-#     :param x:
-#     :return:
-#     """
-#     if house_type_nums[x] >= 1000:
-#         return "high_num"
-#     elif 100 <= house_type_nums[x] < 1000:
-#         return "median_num"
-#     else:
-#         return "low_num"
-#
-#
-# df['houseType'] = df['houseType'].apply(lambda x: check_type(x))
+df['mean_area'] = df['area'] / df['house_total_num']
 
 # 交易至今的天数
 df['交易月份'] = df['tradeTime'].apply(lambda x: int(x.split('/')[1]))
 now = datetime.now()
 df['tradeTime'] = pd.to_datetime(df['tradeTime'])
 df['now_trade_interval'] = (now - df['tradeTime']).dt.days
-
 
 # 我们使用get_dummies()进行编码或者label
 df['tradeTime_month'] = df['tradeTime'].dt.month
@@ -148,7 +131,6 @@ df['uv'] = df['uv'].fillna(value=int(df['uv'].median()))
 #     # df[col] = df[col].astype('category')
 categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region', 'plate']
 df = pd.get_dummies(df, columns=categorical_feas)
-
 
 # 其他特征
 df['stationNum'] = df['subwayStationNum'] + df['busStationNum']
