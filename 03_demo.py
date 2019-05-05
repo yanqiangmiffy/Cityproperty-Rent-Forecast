@@ -12,9 +12,12 @@ import pandas as pd
 import lightgbm as lgb
 import xgboost as xgb
 from sklearn.linear_model import BayesianRidge
+from catboost import CatBoostRegressor
 from sklearn.model_selection import KFold, RepeatedKFold
 from sklearn.metrics import mean_squared_error
-from gen_feas import load_data
+# from gen_feas import load_data
+from feas.gen_feas5 import load_data
+from utils import xgb_score, my_score, lgb_score
 
 train, test, no_features, features = load_data()
 target = train['tradeMoney']
@@ -25,20 +28,21 @@ y_train = train['tradeMoney'].values
 X_test = test[features].values
 
 # ----------lgb------------
-param = {'num_leaves': 120,
-         'min_data_in_leaf': 30,
+param = {'num_leaves': 90,
+         'min_data_in_leaf': 18,
          'objective': 'regression',
          'max_depth': -1,
-         'learning_rate': 0.01,
-         "min_child_samples": 30,
+         'learning_rate': 0.02,
+         # "min_child_samples": 30,
          "boosting": "gbdt",
-         "feature_fraction": 0.9,
-         "bagging_freq": 1,
-         "bagging_fraction": 0.9,
-         "bagging_seed": 11,
-         "metric": 'mse',
-         "lambda_l1": 0.1,
-         "verbosity": -1}
+         "feature_fraction": 0.6,
+         # "bagging_freq": 1,
+         "bagging_fraction": 0.7,
+         # "bagging_seed": 11,
+         "metric": 'rmse',
+         # "lambda_l1": 0.1,
+         'reg_alpha': 0.3, 'reg_lambda': 0.3,
+         'min_sum_hessian_in_leaf': 0.001, 'n_jobs': -1}
 folds = KFold(n_splits=5, shuffle=True, random_state=2018)
 oof_lgb = np.zeros(len(train))
 predictions_lgb = np.zeros(len(test))
@@ -49,7 +53,9 @@ for fold_, (trn_idx, val_idx) in enumerate(folds.split(X_train, y_train)):
     val_data = lgb.Dataset(X_train[val_idx], y_train[val_idx])
 
     num_round = 10000
-    clf = lgb.train(param, trn_data, num_round, valid_sets=[trn_data, val_data], verbose_eval=200,
+    clf = lgb.train(param, trn_data, num_round,
+                    valid_sets=[trn_data, val_data], verbose_eval=200,
+                    feval=lgb_score,
                     early_stopping_rounds=100)
     oof_lgb[val_idx] = clf.predict(X_train[val_idx], num_iteration=clf.best_iteration)
 
@@ -59,7 +65,7 @@ print("CV score: {:<8.8f}".format(mean_squared_error(oof_lgb, target)))
 
 # ----------xgb------------
 
-xgb_params = {'eta': 0.005, 'max_depth': 10, 'subsample': 0.8, 'colsample_bytree': 0.8,
+xgb_params = {'eta': 0.02, 'max_depth': 10, 'subsample': 0.8, 'colsample_bytree': 0.8,
               'objective': 'reg:linear', 'eval_metric': 'rmse', 'silent': True, 'nthread': 4}
 
 folds = KFold(n_splits=5, shuffle=True, random_state=2018)
@@ -72,13 +78,15 @@ for fold_, (trn_idx, val_idx) in enumerate(folds.split(X_train, y_train)):
     val_data = xgb.DMatrix(X_train[val_idx], y_train[val_idx])
 
     watchlist = [(trn_data, 'train'), (val_data, 'valid_data')]
-    clf = xgb.train(dtrain=trn_data, num_boost_round=20000, evals=watchlist, early_stopping_rounds=200,
-                    verbose_eval=100, params=xgb_params)
+    clf = xgb.train(dtrain=trn_data, num_boost_round=2000,
+                    evals=watchlist, early_stopping_rounds=200,
+                    verbose_eval=100,
+                    feval=xgb_score,
+                    params=xgb_params)
     oof_xgb[val_idx] = clf.predict(xgb.DMatrix(X_train[val_idx]), ntree_limit=clf.best_ntree_limit)
     predictions_xgb += clf.predict(xgb.DMatrix(X_test), ntree_limit=clf.best_ntree_limit) / folds.n_splits
 
 print("CV score: {:<8.8f}".format(mean_squared_error(oof_xgb, target)))
-
 
 # --------bayes-----------
 # 将lgb和xgb的结果进行stacking
@@ -94,7 +102,8 @@ for fold_, (trn_idx, val_idx) in enumerate(folds_stack.split(train_stack, target
     trn_data, trn_y = train_stack[trn_idx], target.iloc[trn_idx].values
     val_data, val_y = train_stack[val_idx], target.iloc[val_idx].values
 
-    clf_3 = BayesianRidge()
+    # clf_3 = BayesianRidge()
+    clf_3 = CatBoostRegressor(iterations=2000, learning_rate=0.05)
     clf_3.fit(trn_data, trn_y)
 
     oof_stack[val_idx] = clf_3.predict(val_data)
