@@ -110,10 +110,8 @@ raw_df=pd.read_csv('input/train_data.csv')
 
 valid_df=pd.DataFrame()
 valid_df['ID']=valid_id
-# valid_df['test_index']=valid_index
-# valid_df['valid_tradeMoney']=valid_list
 valid_df['pred_tradeMoney']=valid_pred_list
-# valid_df.to_csv('output/valid.csv')
 
 full_df=pd.merge(raw_df,valid_df,on="ID")
+full_df['error']=full_df['tradeMoney']-full_df['pred_tradeMoney']
 full_df.to_csv('output/full_df.csv',index=None)
