@@ -140,16 +140,25 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   'uv_pv_ratio', 'pv', 'uv',
                   ]
 for fea in community_feas:
-    grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean']})
-    grouped_df.columns = ['_'.join(col).strip() for col in grouped_df.columns.values]
+    grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+    grouped_df.columns = ['community_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
 
     df = pd.merge(df, grouped_df, on='communityName', how='left')
 
+# --------- 小区特征 -----------
 # 每个板块交易次数
 plate_trade_nums = dict(df['plate'].value_counts())
 df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
+
+for fea in community_feas:
+    grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+    grouped_df.columns = ['plate_'.join(col).strip() for col in grouped_df.columns.values]
+    grouped_df = grouped_df.reset_index()
+    # print(grouped_df)
+
+    df = pd.merge(df, grouped_df, on='plate', how='left')
 
 # 类别特征 具有大小关系编码
 # com_categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration']
