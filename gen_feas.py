@@ -19,12 +19,6 @@ df_train = pd.read_csv('input/train_data.csv')
 df_test = pd.read_csv('input/test_a.csv')
 
 print("filter tradeMoney before:", len(df_train))
-# df_train = df_train.query("tradeMoney>=1000&tradeMoney<15000") # 线下0.87 线上0.86
-# df_train = df_train.query("tradeMoney>=500&tradeMoney<40000")#线下0.8816  线上0.84
-# df_train = df_train.query("tradeMoney>=500&tradeMoney<25000")# 线下 0.8857
-# df_train = df_train.query("tradeMoney>=500&tradeMoney<20000") # 线下 0.8836
-# df_train = df_train.query("tradeMoney>=500&tradeMoney<18000") # 线下 0.867
-# df_train = df_train.query("tradeMoney>=800&tradeMoney<16000") # 线下 lgb_0.8757434770663066
 df_train = df_train.query("500<=tradeMoney<20000")  # 线下 lgb_0.876612870005764
 print("filter tradeMoney after:", len(df_train))
 
@@ -133,20 +127,25 @@ df['area_floor_ratio'] = df['area'] / (df['totalFloor'] + 1)
 df['uv_pv_ratio'] = df['uv'] / (df['pv'] + 1)
 df['uv_pv_sum'] = df['uv'] + df['pv']
 
-# 小区特征
+# --------- 小区特征 -----------
 # 每个小区交易次数
 community_trade_nums = dict(df['communityName'].value_counts())
 df['community_nums'] = df['communityName'].apply(lambda x: community_trade_nums[x])
 
 # 每个小区的特征最小值、最大值、平均值
-grouped_df = df.groupby('communityName').agg({'area':['min','max','mean']})
-print(grouped_df)
-grouped_df.columns = ['_'.join(col).strip() for col in grouped_df.columns.values]
-grouped_df = grouped_df.reset_index()
-print(grouped_df)
+community_feas = ['area', 'mean_area', 'now_trade_interval',
+                  'now_build_interval', 'totalFloor',
+                  'tradeMeanPrice', 'tradeNewMeanPrice',
+                  'totalTradeMoney', 'totalTradeArea', 'remainNewNum',
+                  'uv_pv_ratio', 'pv', 'uv',
+                  ]
+for fea in community_feas:
+    grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean']})
+    grouped_df.columns = ['_'.join(col).strip() for col in grouped_df.columns.values]
+    grouped_df = grouped_df.reset_index()
+    # print(grouped_df)
 
-df=pd.merge(df,grouped_df,on='communityName',how='left')
-
+    df = pd.merge(df, grouped_df, on='communityName', how='left')
 
 # 每个板块交易次数
 plate_trade_nums = dict(df['plate'].value_counts())
@@ -173,7 +172,7 @@ no_features = no_features
 features = [fea for fea in df.columns if fea not in no_features]
 train, test = df[:len(df_train)], df[len(df_train):]
 
-print(train.shape, test.shape)
+print("训练集和测试集维度：", train.shape, test.shape)
 df.head(100).to_csv('input/df.csv', index=False)
 print(features)
 

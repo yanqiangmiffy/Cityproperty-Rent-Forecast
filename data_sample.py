@@ -39,4 +39,5 @@ for fea in feas:
     print(grouped_df)
 
     df = pd.merge(df, grouped_df, on='communityName', how='left')
-    df.head(100).to_csv('inout/demo_df.csv', index=False)
+
+df.head(100).to_csv('input/df_sample.csv', index=False)
