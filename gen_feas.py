@@ -140,10 +140,17 @@ df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'
 
 # 重要特征
 df['area_floor_ratio'] = df['area'] / (df['totalFloor'] + 1)
-df['uv_pv_ratio'] = df['uv'] / df['pv'] + 1
+df['uv_pv_ratio'] = df['uv'] /(df['pv'] + 1)
 df['uv_pv_sum'] = df['uv'] + df['pv']
 
-# 特征工程
+
+
+# 强化特征
+rent_house_nums=dict(df['communityName'].value_counts())
+df['community_nums'] = df['communityName'].apply(lambda x: rent_house_nums[x])
+
+
+# 生成数据
 no_features = ['ID', 'tradeTime', 'tradeMoney',
                'buildYear', 'communityName', 'city', 'area_money'
                ]
@@ -151,11 +158,14 @@ no_features = ['ID', 'tradeTime', 'tradeMoney',
 # no_features = no_features + too_many_zeros
 no_features = no_features
 
+
+
+
 features = [fea for fea in df.columns if fea not in no_features]
 train, test = df[:len(df_train)], df[len(df_train):]
 
 print(train.shape, test.shape)
-df.to_csv('input/df.csv', index=False)
+df.head().to_csv('input/df.csv', index=False)
 print(features)
 
 
