@@ -26,8 +26,8 @@ print("filter tradeMoney before:", len(df_train))
 # df_train = df_train.query("tradeMoney>=500&tradeMoney<18000") # 线下 0.867
 # df_train = df_train.query("tradeMoney>=800&tradeMoney<16000") # 线下 lgb_0.8757434770663066
 df_train = df_train.query("500<=tradeMoney<20000")  # 线下 lgb_0.876612870005764
+print("filter tradeMoney after:", len(df_train))
 
-print("filter area after:", len(df_train))
 df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
 
@@ -122,6 +122,36 @@ df['now_build_interval'] = 2019 - df['buildYear']
 df['pv'] = df['pv'].fillna(value=int(df['pv'].median()))
 df['uv'] = df['uv'].fillna(value=int(df['uv'].median()))
 
+# 其他特征
+df['stationNum'] = df['subwayStationNum'] + df['busStationNum']
+df['schoolNum'] = df['interSchoolNum'] + df['schoolNum'] + df['privateSchoolNum']
+df['medicalNum'] = df['hospitalNum'] + df['drugStoreNum']
+df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'] + df['mallNum'] + df['superMarketNum']
+
+# 重要特征
+df['area_floor_ratio'] = df['area'] / (df['totalFloor'] + 1)
+df['uv_pv_ratio'] = df['uv'] / (df['pv'] + 1)
+df['uv_pv_sum'] = df['uv'] + df['pv']
+
+# 小区特征
+# 每个小区交易次数
+community_trade_nums = dict(df['communityName'].value_counts())
+df['community_nums'] = df['communityName'].apply(lambda x: community_trade_nums[x])
+
+# 每个小区的特征最小值、最大值、平均值
+grouped_df = df.groupby('communityName').agg({'area':['min','max','mean']})
+print(grouped_df)
+grouped_df.columns = ['_'.join(col).strip() for col in grouped_df.columns.values]
+grouped_df = grouped_df.reset_index()
+print(grouped_df)
+
+df=pd.merge(df,grouped_df,on='communityName',how='left')
+
+
+# 每个板块交易次数
+plate_trade_nums = dict(df['plate'].value_counts())
+df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
+
 # 类别特征 具有大小关系编码
 # com_categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration']
 #
@@ -132,24 +162,6 @@ df['uv'] = df['uv'].fillna(value=int(df['uv'].median()))
 categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region', 'plate']
 df = pd.get_dummies(df, columns=categorical_feas)
 
-# 其他特征
-df['stationNum'] = df['subwayStationNum'] + df['busStationNum']
-df['schoolNum'] = df['interSchoolNum'] + df['schoolNum'] + df['privateSchoolNum']
-df['medicalNum'] = df['hospitalNum'] + df['drugStoreNum']
-df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'] + df['mallNum'] + df['superMarketNum']
-
-# 重要特征
-df['area_floor_ratio'] = df['area'] / (df['totalFloor'] + 1)
-df['uv_pv_ratio'] = df['uv'] /(df['pv'] + 1)
-df['uv_pv_sum'] = df['uv'] + df['pv']
-
-
-
-# 强化特征
-rent_house_nums=dict(df['communityName'].value_counts())
-df['community_nums'] = df['communityName'].apply(lambda x: rent_house_nums[x])
-
-
 # 生成数据
 no_features = ['ID', 'tradeTime', 'tradeMoney',
                'buildYear', 'communityName', 'city', 'area_money'
@@ -158,14 +170,11 @@ no_features = ['ID', 'tradeTime', 'tradeMoney',
 # no_features = no_features + too_many_zeros
 no_features = no_features
 
-
-
-
 features = [fea for fea in df.columns if fea not in no_features]
 train, test = df[:len(df_train)], df[len(df_train):]
 
 print(train.shape, test.shape)
-df.head().to_csv('input/df.csv', index=False)
+df.head(100).to_csv('input/df.csv', index=False)
 print(features)
 
 

@@ -15,7 +15,7 @@ from sklearn.model_selection import KFold
 import pandas as pd
 import numpy as np
 import time
-from utils import xgb_score,lgb_score
+from utils import xgb_score, lgb_score
 from gen_feas import load_data
 
 # ----------加载数据------------
@@ -85,8 +85,18 @@ for k, (train_index, test_index) in enumerate(kf.split(X, y)):
     # 测试集预测
     pred = lgb_clf.predict(test_data)
     res_list.append(pred)
+
 lgb.plot_importance(lgb_clf, max_num_features=20)
 plt.show()
+
+### 特征选择
+df = pd.DataFrame(train[features].columns.tolist(), columns=['feature'])
+df['importance'] = list(lgb_clf.feature_importance())  # 特征分数
+df = df.sort_values(by='importance', ascending=False)
+print(df['feature'].values)
+# 特征排序
+df.to_csv("output/feature_score.csv", index=None)  # 保存分数
+
 print('......................validate result mean :', np.mean(scores_list))
 end = time.time()
 print("......................run with time: ", (end - start) / 60.0)
