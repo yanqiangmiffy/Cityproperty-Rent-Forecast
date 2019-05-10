@@ -59,8 +59,6 @@ rank_fe_df = rank_df.drop(['tradeMoney'], axis=1)
 df_train = df_train.merge(rank_fe_df, how='left', on='houseToward')  ###划重点！！！！
 df_test = df_test.merge(rank_fe_df, how='left', on='houseToward')
 
-
-
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
 
 # 数据预处理
@@ -242,7 +240,6 @@ for fea in community_feas:
     # print(grouped_df)
     df = pd.merge(df, grouped_df, on='buildYear', how='left')
 
-
 # --------- rank-encoding/mean-encoding --------------
 
 
@@ -254,7 +251,7 @@ df = pd.get_dummies(df, columns=['tradeTime_season'])
 no_features = ['ID', 'tradeTime', 'tradeMoney',
                'houseType', 'region', 'plate',
                'buildYear', 'communityName', 'city',
-               'area_money', 'tradeTime_month','houseToward'
+               'area_money', 'tradeTime_month', 'houseToward'
                ]
 no_features = no_features
 features = [fea for fea in df.columns if fea not in no_features]
