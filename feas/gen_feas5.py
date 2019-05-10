@@ -1,15 +1,12 @@
-#!/usr/bin/env python  
-# -*- coding:utf-8 _*-  
-""" 
-@author:quincyqiang 
-@license: Apache Licence 
-@file: gen_feas5.py 
-@time: 2019-05-06 01:21
+#!/usr/bin/env python
+# -*- coding:utf-8 _*-
+"""
+@author:quincyqiang
+@license: Apache Licence
+@file: gen_feas.py
+@time: 2019-04-22 18:26
 @description:
 """
-
-
-
 import pandas as pd
 import numpy as np
 import datetime
@@ -18,10 +15,11 @@ from datetime import datetime
 from itertools import combinations
 from sklearn.cluster import KMeans
 
+# df['tradeTime']=pd.to_datetime(df['tradeTime'])
+# df['interval']=(now-df['tradeTime']).dt.days
+# no_features = ['ID', 'tradeTime', 'tradeMoney',]
 df_train = pd.read_csv('input/train_data.csv')
-df_test = pd.read_csv('input/test_a.csv')
-
-print("filter tradeMoney before:", len(df_train))
+print("filter before:", len(df_train))
 # df_train = df_train.query("tradeMoney>=1000&tradeMoney<15000") # 线下0.87 线上0.86
 # df_train = df_train.query("tradeMoney>=500&tradeMoney<40000")#线下0.8816  线上0.84
 # df_train = df_train.query("tradeMoney>=500&tradeMoney<25000")# 线下 0.8857
@@ -31,32 +29,15 @@ print("filter tradeMoney before:", len(df_train))
 df_train = df_train.query("500<=tradeMoney<20000")  # 线下 lgb_0.876612870005764
 
 print("filter tradeMoney after:", len(df_train))
+# df_train = df_train.query("10<=area<=200")  # 线下 lgb_0.8830538988139025 线上0.867
 df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
 
-df_train['area_money']=df_train['tradeMoney']/df_train['area']
+df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
 df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
 print("filter area/money after:", len(df_train))
 
-
-# # totalFloor
-# print("filter totalFloor after:", len(df_train))
-# df_train = df_train.query("2<=totalFloor<=53")
-# print("filter totalFloor after:", len(df_train))
-#
-# unique_comname = df_test['communityName'].unique()
-# print("filter communityName after:", len(df_train))
-# df_train = df_train[df_train['communityName'].isin(unique_comname)]
-# print("filter communityName after:", len(df_train))
-#
-# print("houseType")
-#
-# unique_house = df_test['houseType'].unique()
-# print("filter houseType after:", len(df_train))
-# df_train = df_train[df_train['houseType'].isin(unique_house)]
-# print("filter houseType after:", len(df_train))
-
-
+df_test = pd.read_csv('input/test_a.csv')
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
 
 # 数据预处理
@@ -77,22 +58,22 @@ def split_type(x):
 
 df['houseType_shi'], df['houseType_ting'], df['houseType_wei'] = zip(*df['houseType'].apply(lambda x: split_type(x)))
 
-#
-# def check_type(x):
-#     """
-#     将房屋类型计数分箱
-#     :param x:
-#     :return:
-#     """
-#     if house_type_nums[x] >= 1000:
-#         return "high_num"
-#     elif 100 <= house_type_nums[x] < 1000:
-#         return "median_num"
-#     else:
-#         return "low_num"
-#
-#
-# df['houseType'] = df['houseType'].apply(lambda x: check_type(x))
+
+def check_type(x):
+    """
+    将房屋类型计数分箱
+    :param x:
+    :return:
+    """
+    if house_type_nums[x] >= 1000:
+        return "high_num"
+    elif 100 <= house_type_nums[x] < 1000:
+        return "median_num"
+    else:
+        return "low_num"
+
+
+df['houseType'] = df['houseType'].apply(lambda x: check_type(x))
 
 # 交易至今的天数
 now = datetime.now()
@@ -135,82 +116,72 @@ df['now_build_interval'] = 2019 - df['buildYear']
 df['pv'] = df['pv'].fillna(value=int(df['pv'].median()))
 df['uv'] = df['uv'].fillna(value=int(df['uv'].median()))
 
-# 聚类特征
-# house_cols = ['area', 'rentType', 'houseType_shi', 'houseType_ting', 'houseType_wei', 'houseType', 'houseFloor',
-#               'totalFloor', 'houseToward', 'houseDecoration']
-# km = KMeans(n_clusters=5)
-# km.fit(df[house_cols])
-# df['house_clster'] = km.predict(df[house_cols])
-
-life_cols = ['saleSecHouseNum', 'subwayStationNum', 'busStationNum', 'interSchoolNum', 'schoolNum', 'privateSchoolNum',
-             'hospitalNum', 'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum', 'mallNum', 'superMarketNum']
-km = KMeans(n_clusters=3)
-km.fit(df[life_cols])
-df['life_clster'] = km.predict(df[life_cols])
-
-trade_cols = ['totalTradeMoney', 'totalTradeArea', 'tradeMeanPrice', 'tradeSecNum', 'totalNewTradeMoney',
-              'totalNewTradeArea',
-              'tradeNewMeanPrice', 'tradeNewNum']
-km = KMeans(n_clusters=3)
-km.fit(df[trade_cols])
-df['trade_clster'] = km.predict(df[trade_cols])
-
 # 类别特征 具有大小关系编码
-# com_categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration','region', 'plate']
-#
-# for col in com_categorical_feas:
-#     le = LabelEncoder()
-#     df[col] = le.fit_transform(df[col])
+com_categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration']
+
+for col in com_categorical_feas:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
     # df[col] = df[col].astype('category')
-categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region', 'plate']
+categorical_feas = ['region', 'plate']
 df = pd.get_dummies(df, columns=categorical_feas)
-# # 添加组合特征
-# relate_pairs1 = ['saleSecHouseNum', 'subwayStationNum', 'busStationNum', 'interSchoolNum', 'schoolNum',
-#                  'privateSchoolNum', 'hospitalNum', 'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum',
-#                  'mallNum', 'superMarketNum', 'tradeSecNum', 'tradeNewNum', 'remainNewNum',
-#                  'supplyNewNum', 'totalWorkers', 'newWorkers', 'residentPopulation']
-# for rv in combinations(relate_pairs1, 2):
-#     rv2 = '_'.join(rv)
-#     df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
-#     df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
-#     df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
-#     df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
-#
-# relate_pairs2 = ['totalTradeArea', 'tradeMeanPrice', 'totalTradeMoney', 'tradeNewMeanPrice', 'totalNewTradeArea',
-#                  'totalNewTradeMoney', 'area']
-# for rv in combinations(relate_pairs2, 2):
-#     rv2 = '_'.join(rv)
-#     df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
-#     df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
-#     df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
-#     df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
-#
-# relate_pairs3 = ['pv', 'uv', 'lookNum']
-# for rv in combinations(relate_pairs3, 2):
-#     rv2 = '_'.join(rv)
-#     df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
-#     df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
-#     df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
-#     df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
-#
-# too_many_zeros = ['supplyLandNum', 'supplyLandArea', 'tradeLandNum',
-#                   'tradeLandArea', 'landTotalPrice', 'landMeanPrice']
-# for rv in combinations(too_many_zeros, 2):
-#     rv2 = '_'.join(rv)
-#     df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
-#     df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
-#     df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
-#     df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
+# 添加组合特征
+relate_pairs1 = ['saleSecHouseNum', 'subwayStationNum', 'busStationNum', 'interSchoolNum', 'schoolNum',
+                 'privateSchoolNum', 'hospitalNum', 'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum',
+                 'mallNum', 'superMarketNum', 'tradeSecNum', 'tradeNewNum', 'remainNewNum',
+                 'supplyNewNum', 'totalWorkers', 'newWorkers', 'residentPopulation']
+for rv in combinations(relate_pairs1, 2):
+    rv2 = '_'.join(rv)
+    df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
+    df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
+    df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
+    df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
+
+relate_pairs2 = ['totalTradeArea', 'tradeMeanPrice', 'totalTradeMoney', 'tradeNewMeanPrice', 'totalNewTradeArea',
+                 'totalNewTradeMoney', 'area']
+for rv in combinations(relate_pairs2, 2):
+    rv2 = '_'.join(rv)
+    df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
+    df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
+    df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
+    df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
+
+relate_pairs3 = ['pv', 'uv', 'lookNum']
+for rv in combinations(relate_pairs3, 2):
+    rv2 = '_'.join(rv)
+    df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
+    df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
+    df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
+    df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
+
+too_many_zeros = ['supplyLandNum', 'supplyLandArea', 'tradeLandNum',
+                  'tradeLandArea', 'landTotalPrice', 'landMeanPrice']
+for rv in combinations(too_many_zeros, 2):
+    rv2 = '_'.join(rv)
+    df[rv2 + '_sum'] = df[rv[0]] + df[rv[1]]
+    df[rv2 + '_diff'] = df[rv[0]] - df[rv[1]]
+    df[rv2 + '_multiply'] = df[rv[0]] * df[rv[1]]
+    df[rv2 + '_div'] = df[rv[0]] / (df[rv[1]] + 1)
 
 # 其他特征
 df['stationNum'] = df['subwayStationNum'] + df['busStationNum']
 df['schoolNum'] = df['interSchoolNum'] + df['schoolNum'] + df['privateSchoolNum']
 df['medicalNum'] = df['hospitalNum'] + df['drugStoreNum']
 df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'] + df['mallNum'] + df['superMarketNum']
+df['landSupplyTradeRatio'] = df['supplyLandArea'] / (df['tradeLandArea'] + 1)
+# 对数值型的特征，处理为rank特征（鲁棒性好一点）
+# numerical_features=df.loc[:,'saleSecHouseNum':'now_build_interval'].columns.tolist()+['area','totalFloor']
+# for feat in numerical_features:
+#     df[feat] = df[feat].rank() / float(df.shape[0]) # 排序，并且进行归一化
+# rank_feas=['totalTradeMoney']
+# df['totalTradeMoney']=df['totalTradeMoney'].rank()
+# print(df['totalTradeMoney'])
 
 # 重要特征
-df['area_floor_ratio'] = df['area'] / df['totalFloor']
-df['uv_pv_ratio'] = df['uv'] / df['pv']
+df['area_floor_ratio'] = df['area'] / (df['totalFloor'] + 1)
+df['tradeMeanPrice_new_ratio'] = df['tradeMeanPrice'] / (df['tradeNewMeanPrice'] + 1)
+df['tradeMeanPrice_new_sum'] = df['tradeMeanPrice'] + df['tradeNewMeanPrice'] + df['totalTradeMoney']
+df['uv_pv_ratio'] = df['uv'] / (df['pv'] + 1)
 df['uv_pv_sum'] = df['uv'] + df['pv']
 
 # 特征工程
@@ -231,4 +202,3 @@ print(features)
 
 def load_data():
     return train, test, no_features, features
-
