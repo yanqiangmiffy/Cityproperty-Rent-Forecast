@@ -102,6 +102,9 @@ df['houseFloor_ratio'] = df['houseFloor'].apply(lambda x: house_floor(x))
 df['所在楼层'] = df['totalFloor'] * df['houseFloor_ratio']
 # ------ 房屋楼层特征 end -------
 
+# ------- 小区名字 begin ---------
+df['小区名字的数字'] = df['communityName'].apply(lambda x: int(x.replace('XQ', '')))
+# ------- 小区名字 end ---------
 
 # 交易至今的天数
 df['交易月份'] = df['tradeTime'].apply(lambda x: int(x.split('/')[1]))
@@ -171,7 +174,8 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   'now_build_interval', 'totalFloor',
                   'tradeMeanPrice', 'tradeNewMeanPrice',
                   'totalTradeMoney', 'totalTradeArea', 'remainNewNum',
-                  'uv_pv_ratio', 'pv', 'uv', '室面积', '卫面积', '厅面积', '所在楼层'
+                  'uv_pv_ratio', 'pv', 'uv',
+                  '室面积', '卫面积', '厅面积', '室数量', '厅数量', '卫数量'
                   ]
 for fea in tqdm(community_feas):
     grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
@@ -213,6 +217,18 @@ for fea in tqdm(community_feas):
 #     grouped_df = grouped_df.reset_index()
 #     # print(grouped_df)
 #     df = pd.merge(df, grouped_df, on='tradeTime_month', how='left')
+
+
+# ---------------- 建造年份 ---------------
+buildYear_nums = dict(df['buildYear'].value_counts())
+df['buildYear_nums'] = df['buildYear'].apply(lambda x: buildYear_nums[x])
+
+for fea in community_feas:
+    grouped_df = df.groupby('buildYear').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+    grouped_df.columns = ['buildYear_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+    grouped_df = grouped_df.reset_index()
+    # print(grouped_df)
+    df = pd.merge(df, grouped_df, on='buildYear', how='left')
 
 categorical_feas = ['rentType', 'houseFloor', 'houseToward', 'houseDecoration']
 df = pd.get_dummies(df, columns=categorical_feas)
