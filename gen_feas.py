@@ -154,7 +154,7 @@ for fea in tqdm(set(community_feas + numerical_feas)):
     df = pd.merge(df, grouped_df, on='communityName', how='left')
 
     for col in grouped_df:
-        print(col)
+        # print(col)
         if col!='communityName':
             df[fea+'&'+col]=df[fea]-df[col]
             df[fea+'/'+col]=df[fea]/(1+df[col])
