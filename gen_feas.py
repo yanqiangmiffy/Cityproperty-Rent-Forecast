@@ -171,12 +171,12 @@ for fea in tqdm(community_feas):
     grouped_df = grouped_df.reset_index()
     df = pd.merge(df, grouped_df, on='plate', how='left')
 
-    # for col in grouped_df:
-    #     if col!='plate':
-    #         df[fea+'&'+col]=df[fea]-df[col]
-    #         df[fea+'/'+col]=df[fea]/(1+df[col])
-    #         df[fea+'*'+col]=df[fea]*df[col]
-    #         df[fea+'+'+col]=df[fea]+df[col]
+    for col in grouped_df:
+        if col!='plate':
+            df[fea+'&'+col]=df[fea]-df[col]
+            df[fea+'/'+col]=df[fea]/(1+df[col])
+            df[fea+'*'+col]=df[fea]*df[col]
+            df[fea+'+'+col]=df[fea]+df[col]
 # ----------- 地区特征 -------------
 # region_trade_nums = dict(df['region'].value_counts())
 # df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
