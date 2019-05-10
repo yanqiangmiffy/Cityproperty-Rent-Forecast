@@ -32,21 +32,21 @@ print("filter area/money after:", len(df_train))
 
 #
 # totalFloor
-print("filter totalFloor after:", len(df_train))
-df_train = df_train.query("2<=totalFloor<=53")
-print("filter totalFloor after:", len(df_train))
-
-unique_comname = df_test['communityName'].unique()
-print("filter communityName after:", len(df_train))
-df_train = df_train[df_train['communityName'].isin(unique_comname)]
-print("filter communityName after:", len(df_train))
-
-print("houseType")
-
-unique_house = df_test['houseType'].unique()
-print("filter houseType after:", len(df_train))
-df_train = df_train[df_train['houseType'].isin(unique_house)]
-print("filter houseType after:", len(df_train))
+# print("filter totalFloor after:", len(df_train))
+# df_train = df_train.query("2<=totalFloor<=53")
+# print("filter totalFloor after:", len(df_train))
+#
+# unique_comname = df_test['communityName'].unique()
+# print("filter communityName after:", len(df_train))
+# df_train = df_train[df_train['communityName'].isin(unique_comname)]
+# print("filter communityName after:", len(df_train))
+#
+# print("houseType")
+#
+# unique_house = df_test['houseType'].unique()
+# print("filter houseType after:", len(df_train))
+# df_train = df_train[df_train['houseType'].isin(unique_house)]
+# print("filter houseType after:", len(df_train))
 
 
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
@@ -137,7 +137,7 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   'now_build_interval', 'totalFloor',
                   'tradeMeanPrice', 'tradeNewMeanPrice',
                   'totalTradeMoney', 'totalTradeArea', 'remainNewNum',
-                  'uv_pv_ratio', 'pv', 'uv', '交易月份'
+                  'uv_pv_ratio', 'pv', 'uv', '交易月份', 'lookNum'
                   ]
 numerical_feas = ['area', 'totalFloor', 'saleSecHouseNum', 'subwayStationNum',
                   'busStationNum', 'interSchoolNum', 'schoolNum', 'privateSchoolNum', 'hospitalNum',
@@ -147,7 +147,7 @@ numerical_feas = ['area', 'totalFloor', 'saleSecHouseNum', 'subwayStationNum',
                   'supplyLandNum', 'supplyLandArea', 'tradeLandNum', 'tradeLandArea', 'landTotalPrice',
                   'landMeanPrice', 'totalWorkers', 'newWorkers', 'residentPopulation', 'pv', 'uv', 'lookNum']
 
-for fea in tqdm(set(community_feas+numerical_feas)):
+for fea in tqdm(set(community_feas)):
     grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['communityName_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
@@ -166,7 +166,59 @@ for fea in tqdm(community_feas):
 
     df = pd.merge(df, grouped_df, on='plate', how='left')
 
+# # ----------- houseFloor -------------
+# houseFloor_nums = dict(df['houseFloor'].value_counts())
+# df['houseFloor_nums'] = df['houseFloor'].apply(lambda x: houseFloor_nums[x])
+#
+# for fea in tqdm(community_feas):
+#     grouped_df = df.groupby('houseFloor').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['houseFloor_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#     # print(grouped_df)
+#
+#     df = pd.merge(df, grouped_df, on='houseFloor', how='left')
+
+# ----------- 地区特征 -------------
+# region_trade_nums = dict(df['region'].value_counts())
+# df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
+#
+# for fea in community_feas:
+#     grouped_df = df.groupby('region').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['region_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#     # print(grouped_df)
+#
+#     df = pd.merge(df, grouped_df, on='region', how='left')
+
+# # 月份特征
+# tradeTime_month_nums = dict(df['tradeTime_month'].value_counts())
+# df['tradeTime_month_nums'] = df['tradeTime_month'].apply(lambda x: tradeTime_month_nums[x])
+#
+# for fea in community_feas:
+#     grouped_df = df.groupby('tradeTime_month').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['tradeTime_month_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#     # print(grouped_df)
+#     df = pd.merge(df, grouped_df, on='tradeTime_month', how='left')
+# # 季节特征
+#
+# tradeTime_season_nums = dict(df['tradeTime_season'].value_counts())
+# df['tradeTime_season_nums'] = df['tradeTime_season'].apply(lambda x: tradeTime_month_nums[x])
+#
+# for fea in community_feas:
+#     grouped_df = df.groupby('tradeTime_season').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['tradeTime_season_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#     # print(grouped_df)
+#     df = pd.merge(df, grouped_df, on='tradeTime_season', how='left')
+
 # ----------- 类别特征 具有大小关系编码 -------------
+# com_categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration']
+#
+# for col in com_categorical_feas:
+#     le = LabelEncoder()
+#     df[col] = le.fit_transform(df[col])
+#     # df[col] = df[col].astype('category')
 df = pd.get_dummies(df, columns=['tradeTime_month', 'tradeTime_season'])
 categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region', 'plate']
 df = pd.get_dummies(df, columns=categorical_feas)
