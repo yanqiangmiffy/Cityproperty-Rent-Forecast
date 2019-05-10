@@ -160,7 +160,7 @@ for fea in community_feas:
 
     df = pd.merge(df, grouped_df, on='plate', how='left')
 
-# ----------- 地区特征 --------------
+# ----------- 地区特征 -------------
 region_trade_nums = dict(df['region'].value_counts())
 df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
 
