@@ -40,4 +40,5 @@ for fea in feas:
 
     df = pd.merge(df, grouped_df, on='communityName', how='left')
 
+
 df.head(100).to_csv('input/df_sample.csv', index=False)

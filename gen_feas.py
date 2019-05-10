@@ -132,7 +132,7 @@ df['uv_pv_sum'] = df['uv'] + df['pv']
 community_trade_nums = dict(df['communityName'].value_counts())
 df['community_nums'] = df['communityName'].apply(lambda x: community_trade_nums[x])
 
-# 每个小区的特征最小值、最大值、平均值
+# 每个小区的特征最小值、最大值、平均值,求和、中位数
 community_feas = ['area', 'mean_area', 'now_trade_interval',
                   'now_build_interval', 'totalFloor',
                   'tradeMeanPrice', 'tradeNewMeanPrice',
@@ -141,24 +141,36 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   ]
 for fea in community_feas:
     grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-    grouped_df.columns = ['communityName_'+'_'.join(col).strip() for col in grouped_df.columns.values]
+    grouped_df.columns = ['communityName_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
 
     df = pd.merge(df, grouped_df, on='communityName', how='left')
 
-# --------- 小区特征 -----------
+# --------- 版块特征 -----------
 # 每个板块交易次数
 plate_trade_nums = dict(df['plate'].value_counts())
 df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
 
 for fea in community_feas:
     grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-    grouped_df.columns = ['plate_'+'_'.join(col).strip() for col in grouped_df.columns.values]
+    grouped_df.columns = ['plate_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
 
     df = pd.merge(df, grouped_df, on='plate', how='left')
+
+# ----------- 地区特征 --------------
+region_trade_nums = dict(df['region'].value_counts())
+df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
+
+for fea in community_feas:
+    grouped_df = df.groupby('region').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+    grouped_df.columns = ['region_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+    grouped_df = grouped_df.reset_index()
+    # print(grouped_df)
+
+    df = pd.merge(df, grouped_df, on='region', how='left')
 
 # 类别特征 具有大小关系编码
 # com_categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration']
