@@ -10,6 +10,7 @@
 import pandas as pd
 import numpy as np
 import datetime
+from tqdm import tqdm
 from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
 from itertools import combinations
@@ -78,7 +79,6 @@ df['now_trade_interval'] = (now - df['tradeTime']).dt.days
 df['tradeTime_month'] = df['tradeTime'].dt.month
 # [(month % 12 + 3) // 3 for month in range(1, 13)]
 df['tradeTime_season'] = df['tradeTime_month'].apply(lambda month: (month % 12 + 3) // 3)
-df = pd.get_dummies(df, columns=['tradeTime_month', 'tradeTime_season'])
 
 df['buildYear'] = df['buildYear'].replace('暂无信息', 0)
 df['buildYear'] = df['buildYear'].astype(int)
@@ -137,14 +137,20 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   'now_build_interval', 'totalFloor',
                   'tradeMeanPrice', 'tradeNewMeanPrice',
                   'totalTradeMoney', 'totalTradeArea', 'remainNewNum',
-                  'uv_pv_ratio', 'pv', 'uv',
+                  'uv_pv_ratio', 'pv', 'uv', '交易月份','lookNum'
                   ]
-for fea in community_feas:
+numerical_feas = ['area', 'totalFloor', 'saleSecHouseNum', 'subwayStationNum',
+                  'busStationNum', 'interSchoolNum', 'schoolNum', 'privateSchoolNum', 'hospitalNum',
+                  'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum', 'mallNum', 'superMarketNum',
+                  'totalTradeMoney', 'totalTradeArea', 'tradeMeanPrice', 'tradeSecNum', 'totalNewTradeMoney',
+                  'totalNewTradeArea', 'tradeNewMeanPrice', 'tradeNewNum', 'remainNewNum', 'supplyNewNum',
+                  'supplyLandNum', 'supplyLandArea', 'tradeLandNum', 'tradeLandArea', 'landTotalPrice',
+                  'landMeanPrice', 'totalWorkers', 'newWorkers', 'residentPopulation', 'pv', 'uv', 'lookNum']
+
+for fea in tqdm(set(community_feas + numerical_feas)):
     grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['communityName_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
-    # print(grouped_df)
-
     df = pd.merge(df, grouped_df, on='communityName', how='left')
 
 # --------- 版块特征 -----------
@@ -152,7 +158,7 @@ for fea in community_feas:
 plate_trade_nums = dict(df['plate'].value_counts())
 df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
 
-for fea in community_feas:
+for fea in tqdm(community_feas):
     grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['plate_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
@@ -161,24 +167,47 @@ for fea in community_feas:
     df = pd.merge(df, grouped_df, on='plate', how='left')
 
 # ----------- 地区特征 -------------
-region_trade_nums = dict(df['region'].value_counts())
-df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
+# region_trade_nums = dict(df['region'].value_counts())
+# df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
+#
+# for fea in community_feas:
+#     grouped_df = df.groupby('region').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['region_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#     # print(grouped_df)
+#
+#     df = pd.merge(df, grouped_df, on='region', how='left')
 
-for fea in community_feas:
-    grouped_df = df.groupby('region').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-    grouped_df.columns = ['region_' + '_'.join(col).strip() for col in grouped_df.columns.values]
-    grouped_df = grouped_df.reset_index()
-    # print(grouped_df)
+# # 月份特征
+# tradeTime_month_nums = dict(df['tradeTime_month'].value_counts())
+# df['tradeTime_month_nums'] = df['tradeTime_month'].apply(lambda x: tradeTime_month_nums[x])
+#
+# for fea in community_feas:
+#     grouped_df = df.groupby('tradeTime_month').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['tradeTime_month_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#     # print(grouped_df)
+#     df = pd.merge(df, grouped_df, on='tradeTime_month', how='left')
+# # 季节特征
+#
+# tradeTime_season_nums = dict(df['tradeTime_season'].value_counts())
+# df['tradeTime_season_nums'] = df['tradeTime_season'].apply(lambda x: tradeTime_month_nums[x])
+#
+# for fea in community_feas:
+#     grouped_df = df.groupby('tradeTime_season').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['tradeTime_season_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#     # print(grouped_df)
+#     df = pd.merge(df, grouped_df, on='tradeTime_season', how='left')
 
-    df = pd.merge(df, grouped_df, on='region', how='left')
-
-# 类别特征 具有大小关系编码
+# ----------- 类别特征 具有大小关系编码 -------------
 # com_categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration']
 #
 # for col in com_categorical_feas:
 #     le = LabelEncoder()
 #     df[col] = le.fit_transform(df[col])
 #     # df[col] = df[col].astype('category')
+df = pd.get_dummies(df, columns=['tradeTime_month', 'tradeTime_season'])
 categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region', 'plate']
 df = pd.get_dummies(df, columns=categorical_feas)
 

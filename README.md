@@ -19,7 +19,7 @@ numerical_feas=['ID','area','totalFloor','saleSecHouseNum','subwayStationNum',
     'totalTradeMoney','totalTradeArea','tradeMeanPrice'，'tradeSecNum','totalNewTradeMoney',
     'totalNewTradeArea','tradeNewMeanPrice','tradeNewNum','remainNewNum','supplyNewNum',
     'supplyLandNum','supplyLandArea','tradeLandNum','tradeLandArea','landTotalPrice',
-    'landMeanPrice','totalWorkers','newWorkers','residentPopulation','pv','']
+    'landMeanPrice','totalWorkers','newWorkers','residentPopulation','pv','uv','lookNum']
 ```
 
 ```python
