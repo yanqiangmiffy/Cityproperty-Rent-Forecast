@@ -7,6 +7,7 @@
 @time: 2019-04-22 18:26
 @description:
 """
+from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import datetime
@@ -66,12 +67,41 @@ def split_type(x):
     return int(x[0]), int(x[2]), int(x[4])
 
 
-# -----房屋面积、卧室数量、厅的数量、卫的数量进行特征提取------
+# -----房屋面积、卧室数量、厅的数量、卫的数量进行特征提取 begin ------
 
-df['室_num'], df['厅_num'], df['卫_num'] = zip(*df['houseType'].apply(lambda x: split_type(x)))
-# df['室厅_num'],df['室卫_num']
-df['室卫厅_num'] = df['室_num'] + df['厅_num'] + df['卫_num']
-df['mean_area'] = df['area'] / df['house_total_num']
+df['室数量'], df['厅数量'], df['卫数量'] = zip(*df['houseType'].apply(lambda x: split_type(x)))
+df['室厅数量'] = df['室数量'] + df['厅数量']
+df['室卫数量'] = df['室数量'] + df['卫数量']
+df['厅卫数量'] = df['厅数量'] + df['卫数量']
+df['室卫厅数量'] = df['室数量'] + df['厅数量'] + df['卫数量']
+df['mean_area'] = df['area'] / df['室卫厅数量']
+
+df['室占比'] = df['室数量'] / df['室卫厅数量']
+df['厅占比'] = df['厅数量'] / df['室卫厅数量']
+df['卫占比'] = df['卫数量'] / df['室卫厅数量']
+
+df['室面积'] = df['area'] * df['室占比']
+df['厅面积'] = df['area'] * df['厅占比']
+df['卫面积'] = df['area'] * df['卫占比']
+
+
+# -----房屋面积、卧室数量、厅的数量、卫的数量进行特征提取 end ------
+
+# ------ 房屋楼层特征 begin -------
+def house_floor(x):
+    if x == '低':
+        r = 0
+    elif x == '中':
+        r = 0.3333
+    else:
+        r = 0.6666
+    return r
+
+
+df['houseFloor_ratio'] = df['houseFloor'].apply(lambda x: house_floor(x))
+df['所在楼层'] = df['totalFloor'] * df['houseFloor_ratio']
+# ------ 房屋楼层特征 end -------
+
 
 # 交易至今的天数
 df['交易月份'] = df['tradeTime'].apply(lambda x: int(x.split('/')[1]))
@@ -83,7 +113,6 @@ df['now_trade_interval'] = (now - df['tradeTime']).dt.days
 df['tradeTime_month'] = df['tradeTime'].dt.month
 # [(month % 12 + 3) // 3 for month in range(1, 13)]
 df['tradeTime_season'] = df['tradeTime_month'].apply(lambda month: (month % 12 + 3) // 3)
-df = pd.get_dummies(df, columns=['tradeTime_month', 'tradeTime_season'])
 
 df['buildYear'] = df['buildYear'].replace('暂无信息', 0)
 df['buildYear'] = df['buildYear'].astype(int)
@@ -142,9 +171,9 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   'now_build_interval', 'totalFloor',
                   'tradeMeanPrice', 'tradeNewMeanPrice',
                   'totalTradeMoney', 'totalTradeArea', 'remainNewNum',
-                  'uv_pv_ratio', 'pv', 'uv',
+                  'uv_pv_ratio', 'pv', 'uv', '室面积', '卫面积', '厅面积', '所在楼层'
                   ]
-for fea in community_feas:
+for fea in tqdm(community_feas):
     grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['communityName_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
@@ -157,18 +186,43 @@ for fea in community_feas:
 plate_trade_nums = dict(df['plate'].value_counts())
 df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
 
-for fea in community_feas:
+for fea in tqdm(community_feas):
     grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['plate_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     df = pd.merge(df, grouped_df, on='plate', how='left')
 
-categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region', 'plate']
+# # ----------- 地区特征 -------------
+# region_trade_nums = dict(df['region'].value_counts())
+# df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
+#
+# for fea in tqdm(community_feas):
+#     grouped_df = df.groupby('region').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['region_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#
+#     df = pd.merge(df, grouped_df, on='region', how='left')
+#
+# # 月份特征
+# tradeTime_month_nums = dict(df['tradeTime_month'].value_counts())
+# df['tradeTime_month_nums'] = df['tradeTime_month'].apply(lambda x: tradeTime_month_nums[x])
+#
+# for fea in community_feas:
+#     grouped_df = df.groupby('tradeTime_month').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['tradeTime_month_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#     # print(grouped_df)
+#     df = pd.merge(df, grouped_df, on='tradeTime_month', how='left')
+
+categorical_feas = ['rentType', 'houseFloor', 'houseToward', 'houseDecoration']
 df = pd.get_dummies(df, columns=categorical_feas)
+df = pd.get_dummies(df, columns=['tradeTime_season'])
 
 # 生成数据
 no_features = ['ID', 'tradeTime', 'tradeMoney',
-               'buildYear', 'communityName', 'city', 'area_money'
+               'houseType', 'region', 'plate',
+               'buildYear', 'communityName', 'city',
+               'area_money', 'tradeTime_month'
                ]
 no_features = no_features
 features = [fea for fea in df.columns if fea not in no_features]
