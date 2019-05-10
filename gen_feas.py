@@ -51,6 +51,34 @@ print("filter area/money after:", len(df_train))
 # print("filter houseType after:", len(df_train))
 # ------------------ 过滤数据 end ----------------
 
+# ----- 房屋朝向rank encoding ----------------
+rank_df = df_train.loc[:, ['houseToward', 'tradeMoney']].groupby('houseToward', as_index=False).mean().sort_values(
+    by='tradeMoney').reset_index(drop=True)
+rank_df.loc[:, 'houseToward' + '_rank'] = rank_df.index + 1
+rank_fe_df = rank_df.drop(['tradeMoney'], axis=1)
+df_train = df_train.merge(rank_fe_df, how='left', on='houseToward')  ###划重点！！！！
+df_test = df_test.merge(rank_fe_df, how='left', on='houseToward')
+
+rank_cols = ['area', 'totalFloor', 'saleSecHouseNum', 'subwayStationNum',
+                  'busStationNum', 'interSchoolNum', 'schoolNum', 'privateSchoolNum', 'hospitalNum',
+                  'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum', 'mallNum', 'superMarketNum',
+                  'totalTradeMoney', 'totalTradeArea', 'tradeMeanPrice', 'tradeSecNum', 'totalNewTradeMoney',
+                  'totalNewTradeArea', 'tradeNewMeanPrice', 'tradeNewNum', 'remainNewNum', 'supplyNewNum',
+                  'supplyLandNum', 'supplyLandArea', 'tradeLandNum', 'tradeLandArea', 'landTotalPrice',
+                  'landMeanPrice', 'totalWorkers', 'newWorkers', 'residentPopulation', 'pv', 'uv', 'lookNum']
+for col in rank_cols:
+    if col != 'tradeMoney':
+        print(col + '_rank_encoding...')
+        tmp_train_df = df_train.copy()
+        tmp_val_df = df_test.copy()
+
+        rank_df = df_train.loc[:, [col, 'tradeMoney']].groupby(col, as_index=False).mean().sort_values(
+            by='tradeMoney').reset_index(drop=True)
+        rank_df.loc[:, col + '_rank'] = rank_df.index + 1  # +1，为缺失值预留一个0值的rank
+        rank_fe_df = rank_df.drop(['tradeMoney'], axis=1)
+        df_train = tmp_train_df.merge(rank_fe_df, how='left', on=col)
+        df_test = tmp_val_df.merge(rank_fe_df, how='left', on=col)
+
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
 
 # 数据预处理
@@ -87,6 +115,7 @@ df['卫面积'] = df['area'] * df['卫占比']
 
 # -----房屋面积、卧室数量、厅的数量、卫的数量进行特征提取 end ------
 
+
 # ------ 房屋楼层特征 begin -------
 def house_floor(x):
     if x == '低':
@@ -102,8 +131,9 @@ df['houseFloor_ratio'] = df['houseFloor'].apply(lambda x: house_floor(x))
 df['所在楼层'] = df['totalFloor'] * df['houseFloor_ratio']
 # ------ 房屋楼层特征 end -------
 
-# ------- 小区名字 begin ---------
+# ------- 小区名字，板块名字的数字 begin ---------
 df['小区名字的数字'] = df['communityName'].apply(lambda x: int(x.replace('XQ', '')))
+# df['板块名字的数字'] = df['plate'].apply(lambda x: int(x.replace('BK', '')))
 # ------- 小区名字 end ---------
 
 # 交易至今的天数
@@ -230,7 +260,11 @@ for fea in community_feas:
     # print(grouped_df)
     df = pd.merge(df, grouped_df, on='buildYear', how='left')
 
-categorical_feas = ['rentType', 'houseFloor', 'houseToward', 'houseDecoration']
+
+# --------- rank-encoding/mean-encoding --------------
+
+
+categorical_feas = ['rentType', 'houseFloor', 'houseDecoration']
 df = pd.get_dummies(df, columns=categorical_feas)
 df = pd.get_dummies(df, columns=['tradeTime_season'])
 
@@ -238,7 +272,7 @@ df = pd.get_dummies(df, columns=['tradeTime_season'])
 no_features = ['ID', 'tradeTime', 'tradeMoney',
                'houseType', 'region', 'plate',
                'buildYear', 'communityName', 'city',
-               'area_money', 'tradeTime_month'
+               'area_money', 'tradeTime_month','houseToward'
                ]
 no_features = no_features
 features = [fea for fea in df.columns if fea not in no_features]
