@@ -10,7 +10,6 @@
 import pandas as pd
 import numpy as np
 import datetime
-from tqdm import tqdm
 from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
 from itertools import combinations
@@ -18,36 +17,38 @@ from sklearn.cluster import KMeans
 
 df_train = pd.read_csv('input/train_data.csv')
 df_test = pd.read_csv('input/test_a.csv')
-
-print("filter tradeMoney before:", len(df_train))
+# ------------------ 过滤数据 begin ----------------
+print("根据tradeMoney过滤数据:", len(df_train))
 df_train = df_train.query("500<=tradeMoney<20000")  # 线下 lgb_0.876612870005764
 print("filter tradeMoney after:", len(df_train))
 
+print("根据area过滤数据:", len(df_train))
 df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
 
+print("根据tradeMoney/area过滤数据:", len(df_train))
 df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
 df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
 print("filter area/money after:", len(df_train))
 
 #
 # totalFloor
-print("filter totalFloor after:", len(df_train))
-df_train = df_train.query("2<=totalFloor<=53")
-print("filter totalFloor after:", len(df_train))
-
-unique_comname = df_test['communityName'].unique()
-print("filter communityName after:", len(df_train))
-df_train = df_train[df_train['communityName'].isin(unique_comname)]
-print("filter communityName after:", len(df_train))
-
-print("houseType")
-
-unique_house = df_test['houseType'].unique()
-print("filter houseType after:", len(df_train))
-df_train = df_train[df_train['houseType'].isin(unique_house)]
-print("filter houseType after:", len(df_train))
-
+# print("filter totalFloor after:", len(df_train))
+# df_train = df_train.query("2<=totalFloor<=53")
+# print("filter totalFloor after:", len(df_train))
+#
+# unique_comname = df_test['communityName'].unique()
+# print("filter communityName after:", len(df_train))
+# df_train = df_train[df_train['communityName'].isin(unique_comname)]
+# print("filter communityName after:", len(df_train))
+#
+# print("houseType")
+#
+# unique_house = df_test['houseType'].unique()
+# print("filter houseType after:", len(df_train))
+# df_train = df_train[df_train['houseType'].isin(unique_house)]
+# print("filter houseType after:", len(df_train))
+# ------------------ 过滤数据 end ----------------
 
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
 
@@ -65,8 +66,11 @@ def split_type(x):
     return int(x[0]), int(x[2]), int(x[4])
 
 
-df['houseType_shi'], df['houseType_ting'], df['houseType_wei'] = zip(*df['houseType'].apply(lambda x: split_type(x)))
-df['house_total_num'] = df['houseType_shi'] + df['houseType_ting'] + df['houseType_wei']
+# -----房屋面积、卧室数量、厅的数量、卫的数量进行特征提取------
+
+df['室_num'], df['厅_num'], df['卫_num'] = zip(*df['houseType'].apply(lambda x: split_type(x)))
+# df['室厅_num'],df['室卫_num']
+df['室卫厅_num'] = df['室_num'] + df['厅_num'] + df['卫_num']
 df['mean_area'] = df['area'] / df['house_total_num']
 
 # 交易至今的天数
@@ -79,6 +83,7 @@ df['now_trade_interval'] = (now - df['tradeTime']).dt.days
 df['tradeTime_month'] = df['tradeTime'].dt.month
 # [(month % 12 + 3) // 3 for month in range(1, 13)]
 df['tradeTime_season'] = df['tradeTime_month'].apply(lambda month: (month % 12 + 3) // 3)
+df = pd.get_dummies(df, columns=['tradeTime_month', 'tradeTime_season'])
 
 df['buildYear'] = df['buildYear'].replace('暂无信息', 0)
 df['buildYear'] = df['buildYear'].astype(int)
@@ -132,42 +137,32 @@ df['uv_pv_sum'] = df['uv'] + df['pv']
 community_trade_nums = dict(df['communityName'].value_counts())
 df['community_nums'] = df['communityName'].apply(lambda x: community_trade_nums[x])
 
-# 每个小区的特征最小值、最大值、平均值,求和、中位数
+# 每个小区的特征最小值、最大值、平均值
 community_feas = ['area', 'mean_area', 'now_trade_interval',
                   'now_build_interval', 'totalFloor',
                   'tradeMeanPrice', 'tradeNewMeanPrice',
                   'totalTradeMoney', 'totalTradeArea', 'remainNewNum',
-                  'uv_pv_ratio', 'pv', 'uv', '交易月份'
+                  'uv_pv_ratio', 'pv', 'uv',
                   ]
-numerical_feas = ['area', 'totalFloor', 'saleSecHouseNum', 'subwayStationNum',
-                  'busStationNum', 'interSchoolNum', 'schoolNum', 'privateSchoolNum', 'hospitalNum',
-                  'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum', 'mallNum', 'superMarketNum',
-                  'totalTradeMoney', 'totalTradeArea', 'tradeMeanPrice', 'tradeSecNum', 'totalNewTradeMoney',
-                  'totalNewTradeArea', 'tradeNewMeanPrice', 'tradeNewNum', 'remainNewNum', 'supplyNewNum',
-                  'supplyLandNum', 'supplyLandArea', 'tradeLandNum', 'tradeLandArea', 'landTotalPrice',
-                  'landMeanPrice', 'totalWorkers', 'newWorkers', 'residentPopulation', 'pv', 'uv', 'lookNum']
-
-for fea in tqdm(set(community_feas+numerical_feas)):
+for fea in community_feas:
     grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['communityName_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
+    # print(grouped_df)
+
     df = pd.merge(df, grouped_df, on='communityName', how='left')
 
-# --------- 版块特征 -----------
+# --------- 板块特征 -----------
 # 每个板块交易次数
 plate_trade_nums = dict(df['plate'].value_counts())
 df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
 
-for fea in tqdm(community_feas):
+for fea in community_feas:
     grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['plate_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
-    # print(grouped_df)
-
     df = pd.merge(df, grouped_df, on='plate', how='left')
 
-# ----------- 类别特征 具有大小关系编码 -------------
-df = pd.get_dummies(df, columns=['tradeTime_month', 'tradeTime_season'])
 categorical_feas = ['rentType', 'houseType', 'houseFloor', 'houseToward', 'houseDecoration', 'region', 'plate']
 df = pd.get_dummies(df, columns=categorical_feas)
 
@@ -175,10 +170,7 @@ df = pd.get_dummies(df, columns=categorical_feas)
 no_features = ['ID', 'tradeTime', 'tradeMoney',
                'buildYear', 'communityName', 'city', 'area_money'
                ]
-
-# no_features = no_features + too_many_zeros
 no_features = no_features
-
 features = [fea for fea in df.columns if fea not in no_features]
 train, test = df[:len(df_train)], df[len(df_train):]
 
