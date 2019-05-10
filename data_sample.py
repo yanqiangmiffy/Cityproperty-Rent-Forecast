@@ -34,7 +34,7 @@ df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
 feas = ['area']
 for fea in feas:
     grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean']})
-    grouped_df.columns = ['_'.join(col).strip() for col in grouped_df.columns.values]
+    grouped_df.columns = ['communityName_'+'_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     print(grouped_df)
 

@@ -141,7 +141,7 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   ]
 for fea in community_feas:
     grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-    grouped_df.columns = ['community_'.join(col).strip() for col in grouped_df.columns.values]
+    grouped_df.columns = ['communityName_'+'_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
 
@@ -154,7 +154,7 @@ df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
 
 for fea in community_feas:
     grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-    grouped_df.columns = ['plate_'.join(col).strip() for col in grouped_df.columns.values]
+    grouped_df.columns = ['plate_'+'_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
 
