@@ -15,7 +15,7 @@ from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
 from itertools import combinations
 from sklearn.cluster import KMeans
-
+pd.set_option('display.max_columns',100)
 df_train = pd.read_csv('input/train_data.csv')
 df_test = pd.read_csv('input/test_a.csv')
 print("filter tradeMoney before:", len(df_train))
@@ -39,6 +39,11 @@ for fea in feas:
     print(grouped_df)
 
     df = pd.merge(df, grouped_df, on='communityName', how='left')
-
+    for col in grouped_df:
+        if col!='communityName':
+            df[fea+'&'+col]=df[fea]-df[col]
+            df[fea+'/'+col]=df[fea]/(1+df[col])
+            df[fea+'*'+col]=df[fea]*df[col]
+            df[fea+'+'+col]=df[fea]+df[col]
 
 df.head(100).to_csv('input/df_sample.csv', index=False)

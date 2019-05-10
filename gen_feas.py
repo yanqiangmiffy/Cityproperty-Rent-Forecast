@@ -153,6 +153,13 @@ for fea in tqdm(set(community_feas + numerical_feas)):
     grouped_df = grouped_df.reset_index()
     df = pd.merge(df, grouped_df, on='communityName', how='left')
 
+    for col in grouped_df:
+        print(col)
+        if col!='communityName':
+            df[fea+'&'+col]=df[fea]-df[col]
+            df[fea+'/'+col]=df[fea]/(1+df[col])
+            df[fea+'*'+col]=df[fea]*df[col]
+            df[fea+'+'+col]=df[fea]+df[col]
 # --------- 版块特征 -----------
 # 每个板块交易次数
 plate_trade_nums = dict(df['plate'].value_counts())
@@ -162,10 +169,14 @@ for fea in tqdm(community_feas):
     grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['plate_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
-    # print(grouped_df)
-
     df = pd.merge(df, grouped_df, on='plate', how='left')
 
+    # for col in grouped_df:
+    #     if col!='plate':
+    #         df[fea+'&'+col]=df[fea]-df[col]
+    #         df[fea+'/'+col]=df[fea]/(1+df[col])
+    #         df[fea+'*'+col]=df[fea]*df[col]
+    #         df[fea+'+'+col]=df[fea]+df[col]
 # ----------- 地区特征 -------------
 # region_trade_nums = dict(df['region'].value_counts())
 # df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
