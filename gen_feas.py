@@ -32,15 +32,24 @@ df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
 df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
 print("filter area/money after:", len(df_train))
 
+#
+# totalFloor
+# print("filter totalFloor after:", len(df_train))
+# df_train = df_train.query("2<=totalFloor<=53")
+# print("filter totalFloor after:", len(df_train))
+#
+# unique_comname = df_test['communityName'].unique()
+# print("filter communityName after:", len(df_train))
+# df_train = df_train[df_train['communityName'].isin(unique_comname)]
+# print("filter communityName after:", len(df_train))
+#
+# print("houseType")
+#
+# unique_house = df_test['houseType'].unique()
+# print("filter houseType after:", len(df_train))
+# df_train = df_train[df_train['houseType'].isin(unique_house)]
+# print("filter houseType after:", len(df_train))
 # ------------------ 过滤数据 end ----------------
-
-# ----- 房屋朝向rank encoding ----------------
-rank_df = df_train.loc[:, ['houseToward', 'tradeMoney']].groupby('houseToward', as_index=False).mean().sort_values(
-    by='tradeMoney').reset_index(drop=True)
-rank_df.loc[:, 'houseToward' + '_rank'] = rank_df.index + 1
-rank_fe_df = rank_df.drop(['tradeMoney'], axis=1)
-df_train = df_train.merge(rank_fe_df, how='left', on='houseToward')  ###划重点！！！！
-df_test = df_test.merge(rank_fe_df, how='left', on='houseToward')
 
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
 
@@ -78,7 +87,6 @@ df['卫面积'] = df['area'] * df['卫占比']
 
 # -----房屋面积、卧室数量、厅的数量、卫的数量进行特征提取 end ------
 
-
 # ------ 房屋楼层特征 begin -------
 def house_floor(x):
     if x == '低':
@@ -94,9 +102,8 @@ df['houseFloor_ratio'] = df['houseFloor'].apply(lambda x: house_floor(x))
 df['所在楼层'] = df['totalFloor'] * df['houseFloor_ratio']
 # ------ 房屋楼层特征 end -------
 
-# ------- 小区名字，板块名字的数字 begin ---------
+# ------- 小区名字 begin ---------
 df['小区名字的数字'] = df['communityName'].apply(lambda x: int(x.replace('XQ', '')))
-# df['板块名字的数字'] = df['plate'].apply(lambda x: int(x.replace('BK', '')))
 # ------- 小区名字 end ---------
 
 # 交易至今的天数
@@ -189,6 +196,29 @@ for fea in tqdm(community_feas):
     grouped_df = grouped_df.reset_index()
     df = pd.merge(df, grouped_df, on='plate', how='left')
 
+# # ----------- 地区特征 -------------
+# region_trade_nums = dict(df['region'].value_counts())
+# df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
+#
+# for fea in tqdm(community_feas):
+#     grouped_df = df.groupby('region').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['region_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#
+#     df = pd.merge(df, grouped_df, on='region', how='left')
+#
+# # 月份特征
+# tradeTime_month_nums = dict(df['tradeTime_month'].value_counts())
+# df['tradeTime_month_nums'] = df['tradeTime_month'].apply(lambda x: tradeTime_month_nums[x])
+#
+# for fea in community_feas:
+#     grouped_df = df.groupby('tradeTime_month').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['tradeTime_month_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#     # print(grouped_df)
+#     df = pd.merge(df, grouped_df, on='tradeTime_month', how='left')
+
+
 # ---------------- 建造年份 ---------------
 buildYear_nums = dict(df['buildYear'].value_counts())
 df['buildYear_nums'] = df['buildYear'].apply(lambda x: buildYear_nums[x])
@@ -200,10 +230,7 @@ for fea in community_feas:
     # print(grouped_df)
     df = pd.merge(df, grouped_df, on='buildYear', how='left')
 
-# --------- rank-encoding/mean-encoding --------------
-
-
-categorical_feas = ['rentType', 'houseFloor', 'houseDecoration']
+categorical_feas = ['rentType', 'houseFloor', 'houseToward', 'houseDecoration']
 df = pd.get_dummies(df, columns=categorical_feas)
 df = pd.get_dummies(df, columns=['tradeTime_season'])
 
@@ -211,7 +238,7 @@ df = pd.get_dummies(df, columns=['tradeTime_season'])
 no_features = ['ID', 'tradeTime', 'tradeMoney',
                'houseType', 'region', 'plate',
                'buildYear', 'communityName', 'city',
-               'area_money', 'tradeTime_month', 'houseToward'
+               'area_money', 'tradeTime_month'
                ]
 no_features = no_features
 features = [fea for fea in df.columns if fea not in no_features]
