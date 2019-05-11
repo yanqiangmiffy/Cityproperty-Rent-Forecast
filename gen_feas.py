@@ -32,23 +32,6 @@ df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
 df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
 print("filter area/money after:", len(df_train))
 
-#
-# totalFloor
-# print("filter totalFloor after:", len(df_train))
-# df_train = df_train.query("2<=totalFloor<=53")
-# print("filter totalFloor after:", len(df_train))
-#
-# unique_comname = df_test['communityName'].unique()
-# print("filter communityName after:", len(df_train))
-# df_train = df_train[df_train['communityName'].isin(unique_comname)]
-# print("filter communityName after:", len(df_train))
-#
-# print("houseType")
-#
-# unique_house = df_test['houseType'].unique()
-# print("filter houseType after:", len(df_train))
-# df_train = df_train[df_train['houseType'].isin(unique_house)]
-# print("filter houseType after:", len(df_train))
 # ------------------ 过滤数据 end ----------------
 
 # ----- 房屋朝向rank encoding ----------------
@@ -205,29 +188,6 @@ for fea in tqdm(community_feas):
     grouped_df.columns = ['plate_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     df = pd.merge(df, grouped_df, on='plate', how='left')
-
-# # ----------- 地区特征 -------------
-# region_trade_nums = dict(df['region'].value_counts())
-# df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
-#
-# for fea in tqdm(community_feas):
-#     grouped_df = df.groupby('region').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-#     grouped_df.columns = ['region_' + '_'.join(col).strip() for col in grouped_df.columns.values]
-#     grouped_df = grouped_df.reset_index()
-#
-#     df = pd.merge(df, grouped_df, on='region', how='left')
-#
-# # 月份特征
-# tradeTime_month_nums = dict(df['tradeTime_month'].value_counts())
-# df['tradeTime_month_nums'] = df['tradeTime_month'].apply(lambda x: tradeTime_month_nums[x])
-#
-# for fea in community_feas:
-#     grouped_df = df.groupby('tradeTime_month').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-#     grouped_df.columns = ['tradeTime_month_' + '_'.join(col).strip() for col in grouped_df.columns.values]
-#     grouped_df = grouped_df.reset_index()
-#     # print(grouped_df)
-#     df = pd.merge(df, grouped_df, on='tradeTime_month', how='left')
-
 
 # ---------------- 建造年份 ---------------
 buildYear_nums = dict(df['buildYear'].value_counts())
