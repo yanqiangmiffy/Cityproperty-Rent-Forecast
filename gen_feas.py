@@ -109,9 +109,11 @@ df['小区名字的数字'] = df['communityName'].apply(lambda x: int(x.replace(
 # 交易至今的天数
 df['交易月份'] = df['tradeTime'].apply(lambda x: int(x.split('/')[1]))
 # now = datetime.now()
-now = datetime.strptime('2019-05-12','%Y-%m-%d')
+now = datetime.strptime('2019-04-27','%Y-%m-%d') # 5-11
 df['tradeTime'] = pd.to_datetime(df['tradeTime'])
 df['now_trade_interval'] = (now - df['tradeTime']).dt.days
+end_2018=datetime.strptime('2018-12-31','%Y-%m-%d')
+df['2018_trade_interval'] = (end_2018 - df['tradeTime']).dt.days
 
 # 我们使用get_dummies()进行编码或者label
 df['tradeTime_month'] = df['tradeTime'].dt.month
