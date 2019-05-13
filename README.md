@@ -6,7 +6,7 @@
 
 ## 数据集
 
-- 类别行数据
+- 类别型数据
 ```text
 categorical_feas = ['rentType', 'houseType', 'houseFloor', 'region', 'plate', 'houseToward', 'houseDecoration',
     'communityName','city','region','plate','buildYear']
