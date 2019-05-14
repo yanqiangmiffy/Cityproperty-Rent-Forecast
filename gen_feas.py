@@ -20,7 +20,7 @@ df_train = pd.read_csv('input/train_data.csv')
 df_test = pd.read_csv('input/test_a.csv')
 # ------------------ 过滤数据 begin ----------------
 print("根据tradeMoney过滤数据:", len(df_train))
-df_train = df_train.query("500<=tradeMoney<20000")  # 线下 lgb_0.876612870005764
+df_train = df_train.query("500<=tradeMoney<25000")  # 线下 lgb_0.876612870005764
 print("filter tradeMoney after:", len(df_train))
 
 print("根据area过滤数据:", len(df_train))
