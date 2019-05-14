@@ -181,7 +181,7 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   '室面积', '卫面积', '厅面积', '室数量', '厅数量', '卫数量'
                   ]
 for fea in tqdm(community_feas):
-    grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+    grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median','skew']})
     grouped_df.columns = ['communityName_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
@@ -194,7 +194,7 @@ plate_trade_nums = dict(df['plate'].value_counts())
 df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
 
 for fea in tqdm(community_feas):
-    grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+    grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median','skew']})
     grouped_df.columns = ['plate_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     df = pd.merge(df, grouped_df, on='plate', how='left')
@@ -226,8 +226,8 @@ for fea in tqdm(community_feas):
 buildYear_nums = dict(df['buildYear'].value_counts())
 df['buildYear_nums'] = df['buildYear'].apply(lambda x: buildYear_nums[x])
 
-for fea in community_feas:
-    grouped_df = df.groupby('buildYear').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+for fea in tqdm(community_feas):
+    grouped_df = df.groupby('buildYear').agg({fea: ['min', 'max', 'mean', 'sum', 'median','skew']})
     grouped_df.columns = ['buildYear_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
