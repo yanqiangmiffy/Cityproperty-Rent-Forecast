@@ -20,7 +20,7 @@ df_train = pd.read_csv('input/train_data.csv')
 df_test = pd.read_csv('input/test_a.csv')
 # ------------------ 过滤数据 begin ----------------
 print("根据tradeMoney过滤数据:", len(df_train))
-df_train = df_train.query("500<=tradeMoney<25000")  # 线下 lgb_0.876612870005764
+df_train = df_train.query("500<=tradeMoney<20000")  # 线下 lgb_0.876612870005764
 print("filter tradeMoney after:", len(df_train))
 
 print("根据area过滤数据:", len(df_train))
@@ -32,6 +32,10 @@ df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
 df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
 print("filter area/money after:", len(df_train))
 
+# print("过滤异常数据:", len(df_train))
+# df_train = df_train[df_train['ID'] != 100107508]
+# df_train = df_train[df_train['region'] != 'RG00015']
+# print("filter outlier after:", len(df_train))
 #
 # totalFloor
 # print("filter totalFloor after:", len(df_train))
@@ -86,6 +90,33 @@ df['卫面积'] = df['area'] * df['卫占比']
 
 
 # -----房屋面积、卧室数量、厅的数量、卫的数量进行特征提取 end ------
+
+# ------每个房间的面积、一栋楼的总面积、一栋楼的总房间数 begin -----
+df['room_size'] = df['area'] / df['室厅数量']
+df['total_area'] = df['area'] * df['totalFloor']
+df['total_room'] = df['室卫厅数量']*df['totalFloor']
+
+# ------每个房间的面积、一栋楼的总面积、一栋楼的总房间数 end -----
+
+# # ------基础设施在每平米 每个房间 每层楼的分配情况 begin -----
+# facity = ['subwayStationNum', 'busStationNum', 'interSchoolNum', 'schoolNum',
+#                  'privateSchoolNum', 'hospitalNum', 'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum',
+#                  'mallNum', 'superMarketNum']
+# for f in facity:
+#     tmp1 = f + '_area'
+#     df[tmp1] = df[f]/df['area']
+#     tmp2 = f + '_floor'
+#     df[tmp2] = df[f] / df['totalFloor']
+#     tmp3 = f + '_rooms'
+#     df[tmp3] = df[f] / df['total_room']
+# # ------基础设施在每平米 每个房间 每栋楼的分配情况 end -----
+
+# ## 国际学校 私立学校 作为权重
+df['area_interschool_weight'] = df.apply(lambda x: np.power(1.25, x['interSchoolNum'])*x['area'], axis=1)
+df['area_prischool_weight'] = df.apply(lambda x: np.power(1.15, x['privateSchoolNum'])*x['area'], axis=1)
+df['room_size_interschool_weight'] = df.apply(lambda x: np.power(1.25, x['interSchoolNum'])*x['room_size'], axis=1)
+df['room_size_prischool_weight'] = df.apply(lambda x: np.power(1.15, x['privateSchoolNum'])*x['room_size'], axis=1)
+
 
 # ------ 房屋楼层特征 begin -------
 def house_floor(x):
@@ -161,7 +192,11 @@ df['stationNum'] = df['subwayStationNum'] + df['busStationNum']
 df['schoolNum'] = df['interSchoolNum'] + df['schoolNum'] + df['privateSchoolNum']
 df['medicalNum'] = df['hospitalNum'] + df['drugStoreNum']
 df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'] + df['mallNum'] + df['superMarketNum']
-
+# df['mean_price_school'] = df['tradeMeanPrice'] / (df['interSchoolNum'] + df['privateSchoolNum'] + 1)
+df['room_with_school'] = df['室卫厅数量'] * (df['interSchoolNum'] + df['privateSchoolNum'])
+# df['room_with_medical'] = df['室卫厅数量'] * df['medicalNum']
+# df['room_with_life'] = df['室卫厅数量'] * df['lifeHouseNum']
+# df['mean_new_price_school'] = df['tradeNewMeanPrice'] / (df['interSchoolNum'] + df['privateSchoolNum'] +1)
 # 重要特征
 df['area_floor_ratio'] = df['area'] / (df['totalFloor'] + 1)
 df['uv_pv_ratio'] = df['uv'] / (df['pv'] + 1)
@@ -181,7 +216,7 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   '室面积', '卫面积', '厅面积', '室数量', '厅数量', '卫数量'
                   ]
 for fea in tqdm(community_feas):
-    grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median','skew']})
+    grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['communityName_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
@@ -194,7 +229,7 @@ plate_trade_nums = dict(df['plate'].value_counts())
 df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
 
 for fea in tqdm(community_feas):
-    grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median','skew']})
+    grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['plate_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     df = pd.merge(df, grouped_df, on='plate', how='left')
@@ -226,8 +261,8 @@ for fea in tqdm(community_feas):
 buildYear_nums = dict(df['buildYear'].value_counts())
 df['buildYear_nums'] = df['buildYear'].apply(lambda x: buildYear_nums[x])
 
-for fea in tqdm(community_feas):
-    grouped_df = df.groupby('buildYear').agg({fea: ['min', 'max', 'mean', 'sum', 'median','skew']})
+for fea in community_feas:
+    grouped_df = df.groupby('buildYear').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['buildYear_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
