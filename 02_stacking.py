@@ -93,7 +93,7 @@ plt.show()
 df = pd.DataFrame(train[features].columns.tolist(), columns=['feature'])
 df['importance'] = list(lgb_clf.feature_importance())  # 特征分数
 df = df.sort_values(by='importance', ascending=False)
-print(df['feature'].values)
+print(list(df['feature'].values))
 # 特征排序
 df.to_csv("output/feature_score.csv", index=None)  # 保存分数
 
