@@ -93,16 +93,9 @@ df['卫面积'] = df['area'] * df['卫占比']
 
 # ------每个房间的面积、一栋楼的总面积、一栋楼的总房间数 begin -----
 df['room_size'] = df['area'] / df['室厅数量']
-# df['total_area'] = df['area'] * df['totalFloor']
+df['total_area'] = df['area'] * df['totalFloor']
 df['total_room'] = df['室卫厅数量']*df['totalFloor']
-# df['total_area_shi'] = df['室面积'] * df['totalFloor']
-# df['total_area_ting'] = df['厅面积'] * df['totalFloor']
-# df['total_area_wei'] = df['卫面积'] * df['totalFloor']
-# df['total_area_shi1'] = df['室面积'] / df['totalFloor']
-# df['total_area_ting1'] = df['厅面积'] / df['totalFloor']
-# df['total_area_wei1'] = df['卫面积'] / df['totalFloor']
 
-# df['不知道叫啥'] = df['tradeNewMeanPrice'] / df['pv']
 # ------每个房间的面积、一栋楼的总面积、一栋楼的总房间数 end -----
 
 # # ------基础设施在每平米 每个房间 每层楼的分配情况 begin -----
@@ -118,11 +111,12 @@ df['total_room'] = df['室卫厅数量']*df['totalFloor']
 #     df[tmp3] = df[f] / df['total_room']
 # # ------基础设施在每平米 每个房间 每栋楼的分配情况 end -----
 
-# # ## 国际学校 私立学校 作为权重
+# ## 国际学校 私立学校 作为权重
 df['area_interschool_weight'] = df.apply(lambda x: np.power(1.25, x['interSchoolNum'])*x['area'], axis=1)
 df['area_prischool_weight'] = df.apply(lambda x: np.power(1.15, x['privateSchoolNum'])*x['area'], axis=1)
 df['room_size_interschool_weight'] = df.apply(lambda x: np.power(1.25, x['interSchoolNum'])*x['room_size'], axis=1)
 df['room_size_prischool_weight'] = df.apply(lambda x: np.power(1.15, x['privateSchoolNum'])*x['room_size'], axis=1)
+
 
 # ------ 房屋楼层特征 begin -------
 def house_floor(x):
@@ -151,20 +145,13 @@ df['tradeTime'] = pd.to_datetime(df['tradeTime'])
 df['now_trade_interval'] = (now - df['tradeTime']).dt.days
 end_2018=datetime.strptime('2018-12-31','%Y-%m-%d')
 df['2018_trade_interval'] = (end_2018 - df['tradeTime']).dt.days
-df['tradeTime_weekday'] = df['tradeTime'].apply(lambda x: x.weekday()+1)
-df['tradeTime_day'] = df['tradeTime'].dt.day
-df['now_trade_interval_diff'] = df['now_trade_interval']//30
-df['2018_trade_interval_diff'] = df['2018_trade_interval']//30
-df['tradeTime_weekofyear'] = df['tradeTime'].dt.weekofyear
-df['tradeTime_dayofyear'] = df['tradeTime'].dt.dayofyear
-
 
 # 我们使用get_dummies()进行编码或者label
 df['tradeTime_month'] = df['tradeTime'].dt.month
 # [(month % 12 + 3) // 3 for month in range(1, 13)]
 df['tradeTime_season'] = df['tradeTime_month'].apply(lambda month: (month % 12 + 3) // 3)
 
-df['buildYear'] = df['buildYear'].replace('暂无信息', 1994)
+df['buildYear'] = df['buildYear'].replace('暂无信息', 0)
 df['buildYear'] = df['buildYear'].astype(int)
 # 直接使用小区的构建年份填充暂无信息
 # df['buildYear_allmean'] = df['buildYear'].replace(0, int(df['buildYear'].mean()))
@@ -205,26 +192,16 @@ df['stationNum'] = df['subwayStationNum'] + df['busStationNum']
 df['schoolNum'] = df['interSchoolNum'] + df['schoolNum'] + df['privateSchoolNum']
 df['medicalNum'] = df['hospitalNum'] + df['drugStoreNum']
 df['lifeHouseNum'] = df['gymNum'] + df['bankNum'] + df['shopNum'] + df['parkNum'] + df['mallNum'] + df['superMarketNum']
+# df['mean_price_school'] = df['tradeMeanPrice'] / (df['interSchoolNum'] + df['privateSchoolNum'] + 1)
 df['room_with_school'] = df['室卫厅数量'] * (df['interSchoolNum'] + df['privateSchoolNum'])
-
+# df['room_with_medical'] = df['室卫厅数量'] * df['medicalNum']
+# df['room_with_life'] = df['室卫厅数量'] * df['lifeHouseNum']
+# df['mean_new_price_school'] = df['tradeNewMeanPrice'] / (df['interSchoolNum'] + df['privateSchoolNum'] +1)
 # 重要特征
 df['area_floor_ratio'] = df['area'] / (df['totalFloor'] + 1)
 df['uv_pv_ratio'] = df['uv'] / (df['pv'] + 1)
 df['uv_pv_sum'] = df['uv'] + df['pv']
 
-# #人均面积和销售额
-# df['mean_tradeMoney'] = df['totalTradeMoney'] / df['residentPopulation']
-# df['mean_tradeNewMoney'] = df['totalNewTradeMoney'] / df['residentPopulation']
-# df['mean_tradeArea'] = df['totalTradeMoney'] / df['residentPopulation']
-# df['mean_tradeNewArea'] = df['totalNewTradeMoney'] / df['residentPopulation']
-# # 土地情况
-# lands =['supplyLandNum', 'supplyLandArea', 'tradeLandNum', 'tradeLandArea', 'landTotalPrice', 'landMeanPrice']
-# for land in lands:
-#     tmp1 = land + '_resident'
-#     df[tmp1] = df[land] / df['residentPopulation']
-#
-# df['worker_flow_ratio'] = df['tradeNewMeanPrice'] / df['uv']
-# df['worker_ratio'] = (df['newWorkers'] + df['totalWorkers']) / df['residentPopulation']
 # --------- 小区特征 -----------
 # 每个小区交易次数
 community_trade_nums = dict(df['communityName'].value_counts())
