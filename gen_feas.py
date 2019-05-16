@@ -27,11 +27,16 @@ print("根据area过滤数据:", len(df_train))
 df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
 
-print("根据tradeMoney/area过滤数据:", len(df_train))
-df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
-df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
-print("filter area/money after:", len(df_train))
+# print("根据tradeMoney/area过滤数据:", len(df_train))
+# df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
+# df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
+# print("filter area/money after:", len(df_train))
 
+# full_df = pd.read_csv('output/full_df.csv')
+# full_df = full_df.query('error<=2000')
+# small_error_ids = full_df.ID.values
+# df_train = df_train[df_train['ID'].isin(small_error_ids)]
+# print("过滤误差大的训练集之后",len(df_train))
 #
 # totalFloor
 # print("filter totalFloor after:", len(df_train))
@@ -109,10 +114,10 @@ df['小区名字的数字'] = df['communityName'].apply(lambda x: int(x.replace(
 # 交易至今的天数
 df['交易月份'] = df['tradeTime'].apply(lambda x: int(x.split('/')[1]))
 # now = datetime.now()
-now = datetime.strptime('2019-04-27','%Y-%m-%d') # 5-11
+now = datetime.strptime('2019-04-27', '%Y-%m-%d')  # 5-11
 df['tradeTime'] = pd.to_datetime(df['tradeTime'])
 df['now_trade_interval'] = (now - df['tradeTime']).dt.days
-end_2018=datetime.strptime('2018-12-31','%Y-%m-%d')
+end_2018 = datetime.strptime('2018-12-31', '%Y-%m-%d')
 df['2018_trade_interval'] = (end_2018 - df['tradeTime']).dt.days
 
 # 我们使用get_dummies()进行编码或者label
@@ -181,7 +186,7 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   '室面积', '卫面积', '厅面积', '室数量', '厅数量', '卫数量'
                   ]
 for fea in tqdm(community_feas):
-    grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median','skew']})
+    grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median', 'skew']})
     grouped_df.columns = ['communityName_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
@@ -194,7 +199,7 @@ plate_trade_nums = dict(df['plate'].value_counts())
 df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
 
 for fea in tqdm(community_feas):
-    grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median','skew']})
+    grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median', 'skew']})
     grouped_df.columns = ['plate_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     df = pd.merge(df, grouped_df, on='plate', how='left')
@@ -227,7 +232,7 @@ buildYear_nums = dict(df['buildYear'].value_counts())
 df['buildYear_nums'] = df['buildYear'].apply(lambda x: buildYear_nums[x])
 
 for fea in tqdm(community_feas):
-    grouped_df = df.groupby('buildYear').agg({fea: ['min', 'max', 'mean', 'sum', 'median','skew']})
+    grouped_df = df.groupby('buildYear').agg({fea: ['min', 'max', 'mean', 'sum', 'median', 'skew']})
     grouped_df.columns = ['buildYear_' + '_'.join(col).strip() for col in grouped_df.columns.values]
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
