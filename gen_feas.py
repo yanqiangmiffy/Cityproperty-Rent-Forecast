@@ -35,7 +35,7 @@ print("filter area after:", len(df_train))
 print("根据上次训练的结果，过滤误差较大的数据：")
 full_df = pd.read_csv('output/full_df.csv')
 full_df['error']=full_df['error'].abs()
-full_df = full_df.query('error<=2000')
+full_df = full_df.query('error<=1000')
 small_error_ids = full_df.ID.values
 df_train = df_train[df_train['ID'].isin(small_error_ids)]
 print("过滤误差大的训练集之后数据个数：", len(df_train))
