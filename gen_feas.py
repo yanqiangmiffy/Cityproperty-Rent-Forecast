@@ -16,12 +16,12 @@ from datetime import datetime
 from itertools import combinations
 from sklearn.cluster import KMeans
 
-df_train = pd.read_csv('input/train_data.csv')
-df_test = pd.read_csv('input/test_a.csv')
-#
+# df_train = pd.read_csv('input/train_data.csv')
+# df_test = pd.read_csv('input/test_a.csv')
+
 # 加载word2vec feat
-# df_train = pd.read_csv('input/train_w2v.csv')
-# df_test = pd.read_csv('input/test_w2v.csv')
+df_train = pd.read_csv('input/train_w2v.csv')
+df_test = pd.read_csv('input/test_w2v.csv')
 # ------------------ 过滤数据 begin ----------------
 print("根据tradeMoney过滤数据:", len(df_train))
 df_train = df_train.query("400<=tradeMoney<25000")  # 线下 lgb_0.876612870005764
