@@ -33,10 +33,11 @@ print("filter tradeMoney after:", len(df_train))
 # print("filter area/money after:", len(df_train))
 
 print("根据上次训练的结果，过滤误差较大的数据：")
-full_df = pd.read_csv('output/full_df.csv')
-full_df['error']=full_df['error'].abs()
-full_df = full_df.query('error<=3000')
-small_error_ids = full_df.ID.values
+lgb_df = pd.read_csv('output/lgb_df.csv')
+lgb_df['error']=abs(lgb_df['tradeMoney']-lgb_df['pred_tradeMoney'])
+lgb_df = lgb_df.query('error<=3000')
+small_error_ids = lgb_df.ID.values
+print(len(small_error_ids))
 df_train = df_train[df_train['ID'].isin(small_error_ids)]
 print("过滤误差大的训练集之后数据个数：", len(df_train))
 
