@@ -7,3 +7,4 @@ output/xgb_df.csv
 output/lgb_df.csv
 catboost_info/
 input/df_sample.csv
+input/
