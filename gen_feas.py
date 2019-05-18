@@ -20,18 +20,18 @@ df_train = pd.read_csv('input/train_data.csv')
 df_test = pd.read_csv('input/test_a.csv')
 # ------------------ 过滤数据 begin ----------------
 print("根据tradeMoney过滤数据:", len(df_train))
-df_train = df_train.query("500<=tradeMoney<20000")  # 线下 lgb_0.876612870005764
+df_train = df_train.query("400<=tradeMoney<25000")  # 线下 lgb_0.876612870005764
 print("filter tradeMoney after:", len(df_train))
 
 print("根据area过滤数据:", len(df_train))
-df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
+df_train = df_train.query("0<area<=170")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
 
 print("根据tradeMoney/area过滤数据:", len(df_train))
 df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
-df_train = df_train.query("15<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
+df_train = df_train.query("20<=area_money<250")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
 print("filter area/money after:", len(df_train))
-
+# df_train = df_train[df_train['region'] != 'RG00015']
 # print("过滤异常数据:", len(df_train))
 # df_train = df_train[df_train['ID'] != 100107508]
 # df_train = df_train[df_train['region'] != 'RG00015']
