@@ -26,24 +26,25 @@ df_test = pd.read_csv('input/test_a.csv')
 print("根据tradeMoney过滤数据:", len(df_train))
 df_train = df_train.query("400<=tradeMoney<25000")  # 线下 lgb_0.876612870005764
 print("filter tradeMoney after:", len(df_train))
-
+#
 print("根据area过滤数据:", len(df_train))
 df_train = df_train.query("0<=area<=170")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
 
 print("根据tradeMoney/area过滤数据:", len(df_train))
 df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
-df_train = df_train.query("20<=area_money<300")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
+df_train = df_train.query("20<=area_money<250")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
 print("filter area/money after:", len(df_train))
-
-print("根据上次训练的结果，过滤误差较大的数据：")
-lgb_df = pd.read_csv('output/lgb_df.csv')
-lgb_df['error']=abs(lgb_df['tradeMoney']-lgb_df['pred_tradeMoney'])
-lgb_df = lgb_df.query('error<=5000')
-small_error_ids = lgb_df.ID.values
-print(len(small_error_ids))
-df_train = df_train[df_train['ID'].isin(small_error_ids)]
-print("过滤误差大的训练集之后数据个数：", len(df_train))
+#
+# print("根据上次训练的结果，过滤误差较大的数据：")
+# lgb_df = pd.read_csv('output/lgb_df.csv')
+# lgb_df['error']=abs(lgb_df['tradeMoney']-lgb_df['pred_tradeMoney'])
+# print(len(lgb_df.query('error>=5000')))
+# lgb_df = lgb_df.query('error<=5000')
+# small_error_ids = lgb_df.ID.values
+# print(len(small_error_ids))
+# df_train = df_train[df_train['ID'].isin(small_error_ids)]
+# print("过滤误差大的训练集之后数据个数：", len(df_train))
 
 #
 # totalFloor
