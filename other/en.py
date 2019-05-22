@@ -10,9 +10,10 @@
 import pandas as pd
 
 lgb = pd.read_csv('../output/lgb_0.9382180135973881.csv', header=None)
-xgb = pd.read_csv('../output/ebm_0.9027724570728457.csv', header=None)
+ebm = pd.read_csv('../output/ebm_0.9027724570728457.csv', header=None)
+xgb = pd.read_csv('../output/sub_xgb_revise_lstm_qiang.csv', header=None)
 
 # res=lgb*0.6+xgb*0.4 # 0.872517
-res = lgb * 0.9 + xgb * 0.1 # 0.877785
+res = lgb * 0.2 + xgb * 0.7 +ebm*0.1# 0.877785
 # res=lgb*0.8+xgb*0.2   # 0.877785  xgb 原先
 res.to_csv('../output/en73.csv', index=None, header=None)
