@@ -28,7 +28,7 @@ df_train = df_train.query("400<=tradeMoney<25000")  # 线下 lgb_0.8766128700057
 print("filter tradeMoney after:", len(df_train))
 #
 print("根据area过滤数据:", len(df_train))
-df_train = df_train.query("0<=area<=170")  # 线下 lgb_0.8830538988139025 线上0.867
+df_train = df_train.query("0<area<=170")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
 
 print("根据tradeMoney/area过滤数据:", len(df_train))
