@@ -32,23 +32,23 @@ df_test['area']=round(df_test['area'])
 filter_rule_dict = dict()
 df['filter_rule'] = df.apply(lambda row:
                              str(row.area) +
-                                         row.communityName +
-                                         row.rentType +
+                                         row.communityName,
+                                         # row.rentType +
                                          # row.houseType +
                                          # str(row.houseFloor) +
                                          # str(row.totalFloor) +
                                          # row.houseToward +
-                                         row.houseDecoration,
+                                         # row.houseDecoration,
                              axis=1)
 df_test['filter_rule'] = df_test.apply(lambda row:
                                        str(row.area) +
-                                                   row.communityName +
-                                                   row.rentType +
+                                                   row.communityName,
+                                                   # row.rentType +
                                                    # row.houseType +
                                                    # str(row.houseFloor) +
                                                    # str(row.totalFloor) +
                                                    # row.houseToward +
-                                                   row.houseDecoration,
+                                                   # row.houseDecoration,
                                        axis=1)
 train_rules=df['filter_rule'].value_counts().index.values.tolist()
 print(len(train_rules))
@@ -68,5 +68,5 @@ df_test['mean'] = df_test.apply(
     lambda row: filter_rule_dict[row.filter_rule]
     if row.filter_rule in filter_rule_dict else row.pred,axis=1)
 
-df_test['sub'] = df_test['pred'] * 0.5 + df_test['mean'] * 0.5
-df_test['sub'].to_csv('result_correction.csv', index=None, header=None)
+df_test['sub'] = df_test['pred'] * 0.8 + df_test['mean'] * 0.2
+df_test['sub'].to_csv('result_correction.csv', index=None, header=False)
