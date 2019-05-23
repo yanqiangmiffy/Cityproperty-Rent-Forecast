@@ -121,6 +121,7 @@ valid_df = pd.DataFrame()
 valid_df['ID'] = valid_id
 valid_df['pred_tradeMoney'] = valid_pred_list
 full_df = pd.merge(raw_df, valid_df, on="ID")
+full_df['error']=full_df['tradeMoney']-full_df['pred_tradeMoney']
 full_df.to_csv('output/lgb_df.csv', index=None)
 
 # ----------xgb------------
