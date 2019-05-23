@@ -14,11 +14,12 @@ df = pd.read_csv('../output/lgb_df.csv')
 df = df[['area', 'rentType', 'houseType', 'houseFloor',
          'totalFloor', 'houseToward', 'houseDecoration', 'communityName',
          'tradeMoney']]
+df['area']=round(df['area'])
 # 测试集
 df_test = pd.read_csv('../input/test_a.csv')
 df_pred = pd.read_csv('../output/lgb_0.941137595206218.csv', header=None)
 df_test['pred'] = df_pred.values
-
+df_test['area']=round(df_test['area'])
 # commnity_mean = dict()
 # for index, group in df.groupby(by='communityName'):
 #     commnity_mean[index] = group['tradeMoney'].mean()
@@ -29,24 +30,32 @@ df_test['pred'] = df_pred.values
 
 # 根据规则进行调整
 filter_rule_dict = dict()
-df['filter_rule'] = df.apply(lambda row: str(row.area) +
+df['filter_rule'] = df.apply(lambda row:
+                             str(row.area) +
                                          row.communityName +
                                          row.rentType +
-                                         row.houseType +
-                                         str(row.houseFloor) +
-                                         str(row.totalFloor) +
-                                         row.houseToward +
+                                         # row.houseType +
+                                         # str(row.houseFloor) +
+                                         # str(row.totalFloor) +
+                                         # row.houseToward +
                                          row.houseDecoration,
                              axis=1)
-df_test['filter_rule'] = df_test.apply(lambda row: str(row.area) +
+df_test['filter_rule'] = df_test.apply(lambda row:
+                                       str(row.area) +
                                                    row.communityName +
                                                    row.rentType +
-                                                   row.houseType +
-                                                   str(row.houseFloor) +
-                                                   str(row.totalFloor) +
-                                                   row.houseToward +
+                                                   # row.houseType +
+                                                   # str(row.houseFloor) +
+                                                   # str(row.totalFloor) +
+                                                   # row.houseToward +
                                                    row.houseDecoration,
                                        axis=1)
+train_rules=df['filter_rule'].value_counts().index.values.tolist()
+print(len(train_rules))
+test_rules=df_test['filter_rule'].value_counts().index.values.tolist()
+print(len(test_rules))
+print(len(train_rules+test_rules))
+print(len(set(train_rules+test_rules)))
 
 for index, group in df.groupby(by='filter_rule'):
     filter_rule_dict[index] = group['tradeMoney'].mean()
