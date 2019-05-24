@@ -33,3 +33,12 @@ def keras_socre(y_true, y_pred):
     print(y_true)
     print(y_pred)
     return 'keras_score', 1 - K.sum((y_pred - y_true) ** 2) / K.sum((y_pred - K.mean(y_true)) ** 2)
+
+
+numerical_feas = ['area', 'totalFloor', 'saleSecHouseNum', 'subwayStationNum',
+                  'busStationNum', 'interSchoolNum', 'schoolNum', 'privateSchoolNum', 'hospitalNum',
+                  'drugStoreNum', 'gymNum', 'bankNum', 'shopNum', 'parkNum', 'mallNum', 'superMarketNum',
+                  'totalTradeMoney', 'totalTradeArea', 'tradeMeanPrice', 'tradeSecNum', 'totalNewTradeMoney',
+                  'totalNewTradeArea', 'tradeNewMeanPrice', 'tradeNewNum', 'remainNewNum', 'supplyNewNum',
+                  'supplyLandNum', 'supplyLandArea', 'tradeLandNum', 'tradeLandArea', 'landTotalPrice',
+                  'landMeanPrice', 'totalWorkers', 'newWorkers', 'residentPopulation', 'pv', 'uv', 'lookNum']

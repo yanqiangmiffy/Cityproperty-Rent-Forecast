@@ -15,7 +15,7 @@ from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
 from itertools import combinations
 from sklearn.cluster import KMeans
-from utils import numerical_feas
+
 df_train = pd.read_csv('input/train_data.csv')
 df_test = pd.read_csv('input/test_a.csv')
 
@@ -24,30 +24,29 @@ df_test = pd.read_csv('input/test_a.csv')
 # df_test = pd.read_csv('input/test_w2v.csv')
 # ------------------ 过滤数据 begin ----------------
 print("根据tradeMoney过滤数据:", len(df_train))
-df_train = df_train.query("400<=tradeMoney<25000")
+df_train = df_train.query("0<tradeMoney<100000")  # 线下 lgb_0.876612870005764
 print("filter tradeMoney after:", len(df_train))
 #
 print("根据area过滤数据:", len(df_train))
-df_train = df_train.query("0<area<=170")
+df_train = df_train.query("0<area<=700")  # 线下 lgb_0.8830538988139025 线上0.867
 print("filter area after:", len(df_train))
 
-print("根据tradeMoney/area过滤数据:", len(df_train))
-df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
-df_train = df_train.query("20<=area_money<300")
-print("filter area/money after:", len(df_train))
+# print("根据tradeMoney/area过滤数据:", len(df_train))
+# df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
+# df_train = df_train.query("20<=area_money<250")  # 线下 lgb_0.9003567192921244.csv 线上0.867649
+# print("filter area/money after:", len(df_train))
 #
-# with open('log.txt', 'a', encoding='utf-8') as f:
-#     print('-' * 100 + '\n')
-#     f.write('-' * 50 + '\n')
-#     f.write("根据上次训练的结果，过滤误差较大的数据：\n")
-#     lgb_df = pd.read_csv('output/lgb_df.csv')
-#     lgb_df['error'] = abs(lgb_df['tradeMoney'] - lgb_df['pred_tradeMoney'])
-#     f.write("误差大的数据个数" + str(len(lgb_df.query('error>=5000'))) + "\n")
-#     lgb_df = lgb_df.query('error<=5000')
-#     small_error_ids = lgb_df.ID.values
-#     df_train = df_train[df_train['ID'].isin(small_error_ids)]
-#     f.write("过滤误差大的训练集之后数据个数：" + str(len(df_train)) + "\n")
-
+with open('log.txt','a',encoding='utf-8') as f:
+    print('-'*100+'\n')
+    f.write('-'*50+'\n')
+    f.write("根据上次训练的结果，过滤误差较大的数据：\n")
+    lgb_df = pd.read_csv('output/lgb_df.csv')
+    lgb_df['error']=abs(lgb_df['tradeMoney']-lgb_df['pred_tradeMoney'])
+    f.write("误差大的数据个数"+str(len(lgb_df.query('error>=6000')))+"\n")
+    lgb_df = lgb_df.query('error<=6000')
+    small_error_ids = lgb_df.ID.values
+    df_train = df_train[df_train['ID'].isin(small_error_ids)]
+    f.write("过滤误差大的训练集之后数据个数："+str(len(df_train))+"\n")
 #
 # totalFloor
 # print("filter totalFloor after:", len(df_train))
@@ -183,13 +182,12 @@ df['area_floor_ratio'] = df['area'] / (df['totalFloor'] + 1)
 df['uv_pv_ratio'] = df['uv'] / (df['pv'] + 1)
 df['uv_pv_sum'] = df['uv'] + df['pv']
 
-# --------- 小区特征 -----------
-# 每个小区交易次数
-community_trade_nums = dict(df['communityName'].value_counts())
-df['community_nums'] = df['communityName'].apply(lambda x: community_trade_nums[x])
-
-# 每个小区的特征最小值、最大值、平均值
-community_feas = ['area', 'mean_area', 'now_trade_interval',
+# bad rating or mean encoding
+# 使用mean encoding 代替类别编码
+need_mean_feas = ['communityName', 'plate', 'buildYear', 'rentType',
+                  'houseFloor', 'houseToward', 'houseDecoration', 'houseType',
+                  'tradeTime_season', 'region', 'tradeTime_month']
+important_feas = ['area', 'mean_area', 'now_trade_interval',
                   'now_build_interval', 'totalFloor',
                   'tradeMeanPrice', 'tradeNewMeanPrice',
                   'totalTradeMoney', 'totalTradeArea', 'remainNewNum',
@@ -197,66 +195,18 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   '室面积', '卫面积', '厅面积', '室数量', '厅数量', '卫数量'
                   ]
 
-cols = [col for col in (set(community_feas+numerical_feas))]
-for col in cols:
-    df[col + '_Rank'] = df[col].rank()
+for mean_fea in need_mean_feas:
+    # 每个mean_fea的出现个数
+    mean_fea_nums = dict(df[mean_fea].value_counts())
+    df[mean_fea + '_nums'] = df[mean_fea].apply(lambda x: mean_fea_nums[x])
 
-for fea in tqdm(community_feas):
-    grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-    grouped_df.columns = ['communityName_' + '_'.join(col).strip() for col in grouped_df.columns.values]
-    grouped_df = grouped_df.reset_index()
-    # print(grouped_df)
-
-    df = pd.merge(df, grouped_df, on='communityName', how='left')
-
-# --------- 板块特征 -----------
-# 每个板块交易次数
-plate_trade_nums = dict(df['plate'].value_counts())
-df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
-
-for fea in tqdm(community_feas):
-    grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-    grouped_df.columns = ['plate_' + '_'.join(col).strip() for col in grouped_df.columns.values]
-    grouped_df = grouped_df.reset_index()
-    df = pd.merge(df, grouped_df, on='plate', how='left')
-
-# # ----------- 地区特征 -------------
-# region_trade_nums = dict(df['region'].value_counts())
-# df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
-#
-# for fea in tqdm(community_feas):
-#     grouped_df = df.groupby('region').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-#     grouped_df.columns = ['region_' + '_'.join(col).strip() for col in grouped_df.columns.values]
-#     grouped_df = grouped_df.reset_index()
-#
-#     df = pd.merge(df, grouped_df, on='region', how='left')
-#
-# # 月份特征
-# tradeTime_month_nums = dict(df['tradeTime_month'].value_counts())
-# df['tradeTime_month_nums'] = df['tradeTime_month'].apply(lambda x: tradeTime_month_nums[x])
-#
-# for fea in community_feas:
-#     grouped_df = df.groupby('tradeTime_month').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-#     grouped_df.columns = ['tradeTime_month_' + '_'.join(col).strip() for col in grouped_df.columns.values]
-#     grouped_df = grouped_df.reset_index()
-#     # print(grouped_df)
-#     df = pd.merge(df, grouped_df, on='tradeTime_month', how='left')
-
-
-# ---------------- 建造年份 ---------------
-buildYear_nums = dict(df['buildYear'].value_counts())
-df['buildYear_nums'] = df['buildYear'].apply(lambda x: buildYear_nums[x])
-
-for fea in tqdm(community_feas):
-    grouped_df = df.groupby('buildYear').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-    grouped_df.columns = ['buildYear_' + '_'.join(col).strip() for col in grouped_df.columns.values]
-    grouped_df = grouped_df.reset_index()
-    # print(grouped_df)
-    df = pd.merge(df, grouped_df, on='buildYear', how='left')
-
-categorical_feas = ['rentType', 'houseFloor', 'houseToward', 'houseDecoration']
-df = pd.get_dummies(df, columns=categorical_feas)
-df = pd.get_dummies(df, columns=['tradeTime_season'])
+    # 每个的特征最小值、最大值、平均值
+    for fea in tqdm(important_feas):
+        grouped_df = df.groupby(mean_fea).agg({fea: ['mean']})
+        grouped_df.columns = [mean_fea + '_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+        grouped_df = grouped_df.reset_index()
+        df = pd.merge(df, grouped_df, on=mean_fea, how='left')
+    df.drop(columns=[mean_fea], inplace=True)
 
 # 生成数据
 no_features = ['ID', 'tradeTime', 'tradeMoney',
