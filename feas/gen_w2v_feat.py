@@ -49,8 +49,8 @@ def w2v_feat(data_frame, feat, mode):
 
 if __name__ == '__main__':
     L = 10
-    df_train = pd.read_csv('input/train_data.csv')
-    df_test = pd.read_csv('input/test_a.csv')
+    df_train = pd.read_csv('../input/train_data.csv')
+    df_test = pd.read_csv('../input/test_a.csv')
     # ------------------ 过滤数据 begin ----------------
     print("根据tradeMoney过滤数据:", len(df_train))
     df_train = df_train.query("500<=tradeMoney<25000")  # 线下 lgb_0.876612870005764
@@ -68,5 +68,5 @@ if __name__ == '__main__':
 
     features = [i for i in drop_train.columns if i in drop_valid.columns]
     print('features num: ', len(features) - 1)
-    train[features + ['tradeMoney']].to_csv('input/train_w2v.csv', index=False)
-    valid[features].to_csv('input/test_w2v.csv', index=False)
+    train[features + ['tradeMoney']].to_csv('../input/train_w2v.csv', index=False)
+    valid[features].to_csv('../input/test_w2v.csv', index=False)

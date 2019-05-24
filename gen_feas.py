@@ -27,9 +27,9 @@ df_test = pd.read_csv('input/test_a.csv')
 
 # ------------------ 过滤数据 begin ----------------
 print("根据tradeMoney过滤数据:", len(df_train))
-df_train = df_train.query("400<=tradeMoney<25000")
+df_train = df_train.query("100<=tradeMoney<40000")
 print("filter tradeMoney after:", len(df_train))
-#
+
 print("根据area过滤数据:", len(df_train))
 df_train = df_train.query("0<area<=170")
 print("filter area after:", len(df_train))
@@ -121,9 +121,9 @@ df['houseFloor_ratio'] = df['houseFloor'].apply(lambda x: house_floor(x))
 df['所在楼层'] = df['totalFloor'] * df['houseFloor_ratio']
 # ------ 房屋楼层特征 end -------
 
-# ------- 小区名字 begin ---------
+# ------- 名字数字 begin ---------
 df['小区名字的数字'] = df['communityName'].apply(lambda x: int(x.replace('XQ', '')))
-# ------- 小区名字 end ---------
+df['板块名字的数字'] = df['plate'].apply(lambda x: int(x.replace('BK', '')))
 
 # 交易至今的天数
 df['交易月份'] = df['tradeTime'].apply(lambda x: int(x.split('/')[1]))
@@ -197,7 +197,7 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   'tradeMeanPrice', 'tradeNewMeanPrice',
                   'totalTradeMoney', 'totalTradeArea', 'remainNewNum',
                   'uv_pv_ratio', 'pv', 'uv',
-                  '室面积', '卫面积', '厅面积', '室数量', '厅数量', '卫数量'
+                  '室面积', '卫面积', '厅面积', '室数量', '厅数量', '卫数量','ID','室卫厅数量'
                   ]
 
 for fea in tqdm(community_feas):
@@ -262,7 +262,7 @@ df = pd.get_dummies(df, columns=categorical_feas)
 df = pd.get_dummies(df, columns=['tradeTime_season'])
 
 # 生成数据
-no_features = ['ID', 'tradeTime', 'tradeMoney',
+no_features = ['tradeTime', 'tradeMoney',
                'houseType', 'region', 'plate',
                'buildYear', 'communityName', 'city',
                'area_money', 'tradeTime_month'
