@@ -16,12 +16,15 @@ from datetime import datetime
 from itertools import combinations
 from sklearn.cluster import KMeans
 from utils import numerical_feas
+
 df_train = pd.read_csv('input/train_data.csv')
 df_test = pd.read_csv('input/test_a.csv')
 
 # 加载word2vec feat
 # df_train = pd.read_csv('input/train_w2v.csv')
 # df_test = pd.read_csv('input/test_w2v.csv')
+
+
 # ------------------ 过滤数据 begin ----------------
 print("根据tradeMoney过滤数据:", len(df_train))
 df_train = df_train.query("400<=tradeMoney<25000")
@@ -197,10 +200,6 @@ community_feas = ['area', 'mean_area', 'now_trade_interval',
                   '室面积', '卫面积', '厅面积', '室数量', '厅数量', '卫数量'
                   ]
 
-cols = [col for col in (set(community_feas+numerical_feas))]
-for col in cols:
-    df[col + '_Rank'] = df[col].rank()
-
 for fea in tqdm(community_feas):
     grouped_df = df.groupby('communityName').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['communityName_' + '_'.join(col).strip() for col in grouped_df.columns.values]
@@ -253,6 +252,10 @@ for fea in tqdm(community_feas):
     grouped_df = grouped_df.reset_index()
     # print(grouped_df)
     df = pd.merge(df, grouped_df, on='buildYear', how='left')
+# 添加rank特征
+cols = [col for col in (set(community_feas + numerical_feas))]
+for col in cols:
+    df[col + '_Rank'] = df[col].rank()
 
 categorical_feas = ['rentType', 'houseFloor', 'houseToward', 'houseDecoration']
 df = pd.get_dummies(df, columns=categorical_feas)

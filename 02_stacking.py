@@ -20,7 +20,8 @@ from gen_feas import load_data
 
 # ----------加载数据------------
 train, test, no_features, features = load_data()
-
+# features=list(pd.read_csv('output/feature_score.csv')['feature'][:150])
+# print(features)
 #
 X = train[features].values
 y = train['tradeMoney'].values
@@ -121,7 +122,7 @@ valid_df = pd.DataFrame()
 valid_df['ID'] = valid_id
 valid_df['pred_tradeMoney'] = valid_pred_list
 full_df = pd.merge(raw_df, valid_df, on="ID")
-full_df['error']=full_df['tradeMoney']-full_df['pred_tradeMoney']
+full_df['error'] = abs(full_df['tradeMoney'] - full_df['pred_tradeMoney'])
 full_df.to_csv('output/lgb_df.csv', index=None)
 
 # ----------xgb------------
