@@ -74,6 +74,40 @@ df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
 
 # 数据预处理
 df['rentType'] = df['rentType'].replace('--', '未知方式')
+# rentType租房形式处理，可以根据租房面积将"未知方式"替换为"整租"或者"合租"
+# 整租租房面积大，合租租房面积小
+rentType_by_area = dict()
+for index, group in df.groupby(by="rentType"):
+    rentType_by_area[index] = group['area'].mean()
+
+
+def replace_renttype(row):
+    if row.rentType == '未知方式':
+        if row.area >= rentType_by_area['整租']:
+            return '整租'
+        else:
+            return '合租'
+    else:
+        return row.rentType
+
+
+df['rentType'] = df.apply(lambda row: replace_renttype(row), axis=1)
+print(df['rentType'].value_counts())
+
+# 装修方式
+# community_dec = dict()
+# for index, group in df.groupby(['communityName']):
+#     decs = group['houseDecoration'].value_counts().index.tolist()
+#     if decs[0] == '其他' and len(decs) == 1:
+#         community_dec[index] = decs[0]
+#     else:
+#         if len(decs) == 1:
+#             community_dec[index] = decs[0]
+#         else:
+#             community_dec[index] = decs[1]
+#
+# df['houseDecoration'] = df.apply(
+#     lambda x: community_dec[x.communityName] if x.houseDecoration == '其他' else x.houseDecoration, axis=1)
 
 
 def split_type(x):
@@ -204,6 +238,22 @@ for fea in tqdm(community_feas):
 
     df = pd.merge(df, grouped_df, on='communityName', how='left')
 
+for fea in tqdm(community_feas):
+    an_df = df.groupby(['communityName', 'rentType']).agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+    an_df.columns = ['communityName_rentType_' + '_'.join(col).strip() for col in an_df.columns.values]
+    an_df = an_df.reset_index()
+    # print(grouped_df)
+
+    df = pd.merge(df, an_df, on=['communityName', 'rentType'], how='left')
+
+for fea in tqdm(community_feas):
+    an_df = df.groupby(['communityName', 'houseDecoration']).agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+    an_df.columns = ['communityName_houseDecoration_' + '_'.join(col).strip() for col in an_df.columns.values]
+    an_df = an_df.reset_index()
+    # print(grouped_df)
+
+    df = pd.merge(df, an_df, on=['communityName', 'houseDecoration'], how='left')
+
 # --------- 板块特征 -----------
 for fea in tqdm(community_feas):
     grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
@@ -234,29 +284,34 @@ for fea in tqdm(community_feas):
 #     df = pd.merge(df, grouped_df, on='tradeTime_month', how='left')
 
 
-# ---------------- 建造年份 ---------------
-for fea in tqdm(community_feas):
-    grouped_df = df.groupby('buildYear').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
-    grouped_df.columns = ['buildYear_' + '_'.join(col).strip() for col in grouped_df.columns.values]
-    grouped_df = grouped_df.reset_index()
-    # print(grouped_df)
-    df = pd.merge(df, grouped_df, on='buildYear', how='left')
+# # ---------------- 建造年份 ---------------
+# for fea in tqdm(community_feas):
+#     grouped_df = df.groupby('buildYear').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+#     grouped_df.columns = ['buildYear_' + '_'.join(col).strip() for col in grouped_df.columns.values]
+#     grouped_df = grouped_df.reset_index()
+#     # print(grouped_df)
+#     df = pd.merge(df, grouped_df, on='buildYear', how='left')
+
+
 # 添加rank特征
 cols = [col for col in (set(community_feas + numerical_feas))]
 for col in cols:
     df[col + '_Rank'] = df[col].rank()
 
-need_num_feas = ['communityName', 'plate', 'buildYear', 'rentType',
-                 'houseFloor', 'houseToward', 'houseDecoration', 'houseType',
+# 数量统计特征
+need_num_feas = ['communityName', 'plate', 'rentType', 'houseToward',
                  'tradeTime_season', 'region', 'tradeTime_month']
 for mean_fea in need_num_feas:
     # 每个mean_fea的出现个数
     mean_fea_nums = dict(df[mean_fea].value_counts())
     df[mean_fea + '_nums'] = df[mean_fea].apply(lambda x: mean_fea_nums[x])
 
-categorical_feas = ['rentType', 'houseFloor', 'houseToward', 'houseDecoration']
-df = pd.get_dummies(df, columns=categorical_feas)
-df = pd.get_dummies(df, columns=['tradeTime_season'])
+# 类比编码
+categorical_feas = ['rentType', 'houseFloor', 'houseToward', 'houseDecoration', 'tradeTime_season']
+# df = pd.get_dummies(df, columns=categorical_feas)
+for col in categorical_feas:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
 
 # 生成数据
 no_features = ['tradeTime', 'tradeMoney',

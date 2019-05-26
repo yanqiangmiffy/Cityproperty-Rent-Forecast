@@ -17,10 +17,10 @@ from itertools import combinations
 from sklearn.cluster import KMeans
 
 pd.set_option('display.max_columns', 100)
-df_train = pd.read_csv('input/train_data.csv')
-df_test = pd.read_csv('input/test_a.csv')
+df_train = pd.read_csv('../input/train_data.csv')
+df_test = pd.read_csv('../input/test_a.csv')
 print("filter tradeMoney before:", len(df_train))
-df_train = df_train.query("900<=tradeMoney<16000")  # 线下 lgb_0.876612870005764
+df_train = df_train.query("100<=tradeMoney<70000")  # 线下 lgb_0.876612870005764
 print("filter tradeMoney after:", len(df_train))
 
 df_train = df_train.query("15<=area<=150")  # 线下 lgb_0.8830538988139025 线上0.867
@@ -78,3 +78,4 @@ for col in rank_cols:
         # tmp_train_df.drop([col],axis=1,inplace=True)
         # tmp_val_df.drop([col],axis=1,inplace=True)
 print(df_train,df_test)
+
