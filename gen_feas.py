@@ -27,7 +27,7 @@ df_test = pd.read_csv('input/test_a.csv')
 
 # ------------------ 过滤数据 begin ----------------
 print("根据tradeMoney过滤数据:", len(df_train))
-df_train = df_train.query("100<=tradeMoney<40000")
+df_train = df_train.query("400<=tradeMoney<30000")
 print("filter tradeMoney after:", len(df_train))
 
 print("根据area过滤数据:", len(df_train))
@@ -36,7 +36,7 @@ print("filter area after:", len(df_train))
 
 print("根据tradeMoney/area过滤数据:", len(df_train))
 df_train['area_money'] = df_train['tradeMoney'] / df_train['area']
-df_train = df_train.query("20<=area_money<300")
+df_train = df_train.query("20<=area_money<250")
 print("filter area/money after:", len(df_train))
 #
 # with open('log.txt', 'a', encoding='utf-8') as f:
@@ -93,6 +93,7 @@ def replace_renttype(row):
 
 df['rentType'] = df.apply(lambda row: replace_renttype(row), axis=1)
 print(df['rentType'].value_counts())
+
 
 # 装修方式
 # community_dec = dict()
@@ -254,6 +255,14 @@ for fea in tqdm(community_feas):
 
     df = pd.merge(df, an_df, on=['communityName', 'houseDecoration'], how='left')
 
+for fea in tqdm(community_feas):
+    an_df = df.groupby(['communityName', 'houseType']).agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
+    an_df.columns = ['communityName_houseType_' + '_'.join(col).strip() for col in an_df.columns.values]
+    an_df = an_df.reset_index()
+    # print(grouped_df)
+
+    df = pd.merge(df, an_df, on=['communityName', 'houseType'], how='left')
+
 # --------- 板块特征 -----------
 for fea in tqdm(community_feas):
     grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
@@ -299,8 +308,7 @@ for col in cols:
     df[col + '_Rank'] = df[col].rank()
 
 # 数量统计特征
-need_num_feas = ['communityName', 'plate', 'rentType', 'houseToward',
-                 'tradeTime_season', 'region', 'tradeTime_month']
+need_num_feas = ['communityName', 'plate', 'tradeTime_season', 'region', 'tradeTime_month']
 for mean_fea in need_num_feas:
     # 每个mean_fea的出现个数
     mean_fea_nums = dict(df[mean_fea].value_counts())
