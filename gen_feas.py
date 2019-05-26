@@ -187,17 +187,13 @@ df['uv_pv_ratio'] = df['uv'] / (df['pv'] + 1)
 df['uv_pv_sum'] = df['uv'] + df['pv']
 
 # --------- 小区特征 -----------
-# 每个小区交易次数
-community_trade_nums = dict(df['communityName'].value_counts())
-df['community_nums'] = df['communityName'].apply(lambda x: community_trade_nums[x])
-
 # 每个小区的特征最小值、最大值、平均值
 community_feas = ['area', 'mean_area', 'now_trade_interval',
                   'now_build_interval', 'totalFloor',
                   'tradeMeanPrice', 'tradeNewMeanPrice',
                   'totalTradeMoney', 'totalTradeArea', 'remainNewNum',
                   'uv_pv_ratio', 'pv', 'uv',
-                  '室面积', '卫面积', '厅面积', '室数量', '厅数量', '卫数量','ID','室卫厅数量'
+                  '室面积', '卫面积', '厅面积', '室数量', '厅数量', '卫数量', 'ID', '室卫厅数量'
                   ]
 
 for fea in tqdm(community_feas):
@@ -209,10 +205,6 @@ for fea in tqdm(community_feas):
     df = pd.merge(df, grouped_df, on='communityName', how='left')
 
 # --------- 板块特征 -----------
-# 每个板块交易次数
-plate_trade_nums = dict(df['plate'].value_counts())
-df['plate_nums'] = df['plate'].apply(lambda x: plate_trade_nums[x])
-
 for fea in tqdm(community_feas):
     grouped_df = df.groupby('plate').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['plate_' + '_'.join(col).strip() for col in grouped_df.columns.values]
@@ -243,9 +235,6 @@ for fea in tqdm(community_feas):
 
 
 # ---------------- 建造年份 ---------------
-buildYear_nums = dict(df['buildYear'].value_counts())
-df['buildYear_nums'] = df['buildYear'].apply(lambda x: buildYear_nums[x])
-
 for fea in tqdm(community_feas):
     grouped_df = df.groupby('buildYear').agg({fea: ['min', 'max', 'mean', 'sum', 'median']})
     grouped_df.columns = ['buildYear_' + '_'.join(col).strip() for col in grouped_df.columns.values]
@@ -256,6 +245,14 @@ for fea in tqdm(community_feas):
 cols = [col for col in (set(community_feas + numerical_feas))]
 for col in cols:
     df[col + '_Rank'] = df[col].rank()
+
+need_num_feas = ['communityName', 'plate', 'buildYear', 'rentType',
+                 'houseFloor', 'houseToward', 'houseDecoration', 'houseType',
+                 'tradeTime_season', 'region', 'tradeTime_month']
+for mean_fea in need_num_feas:
+    # 每个mean_fea的出现个数
+    mean_fea_nums = dict(df[mean_fea].value_counts())
+    df[mean_fea + '_nums'] = df[mean_fea].apply(lambda x: mean_fea_nums[x])
 
 categorical_feas = ['rentType', 'houseFloor', 'houseToward', 'houseDecoration']
 df = pd.get_dummies(df, columns=categorical_feas)
