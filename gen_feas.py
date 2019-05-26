@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 import datetime
 from sklearn.preprocessing import LabelEncoder
+from utils import numerical_feas
 from datetime import datetime
 from itertools import combinations
 from sklearn.cluster import KMeans
@@ -149,10 +150,14 @@ df['交易月份'] = df['tradeTime'].apply(lambda x: int(x.split('/')[1]))
 now = datetime.strptime('2019-04-27','%Y-%m-%d') # 5-11
 df['tradeTime'] = pd.to_datetime(df['tradeTime'])
 df['now_trade_interval'] = (now - df['tradeTime']).dt.days
+
 end_2018=datetime.strptime('2018-12-31','%Y-%m-%d')
 df['2018_trade_interval'] = (end_2018 - df['tradeTime']).dt.days
 df['tradeTime_weekday'] = df['tradeTime'].apply(lambda x: x.weekday()+1)
+df['tradeTime_month'] = df['tradeTime'].dt.month
+df['tradeTime_year'] = df['tradeTime'].dt.year
 df['tradeTime_day'] = df['tradeTime'].dt.day
+df['tradeTime_quarter'] = df['tradeTime'].dt.quarter
 df['now_trade_interval_diff'] = df['now_trade_interval']//30
 df['2018_trade_interval_diff'] = df['2018_trade_interval']//30
 df['tradeTime_weekofyear'] = df['tradeTime'].dt.weekofyear
@@ -160,12 +165,13 @@ df['tradeTime_dayofyear'] = df['tradeTime'].dt.dayofyear
 
 
 # 我们使用get_dummies()进行编码或者label
-df['tradeTime_month'] = df['tradeTime'].dt.month
+
 # [(month % 12 + 3) // 3 for month in range(1, 13)]
 df['tradeTime_season'] = df['tradeTime_month'].apply(lambda month: (month % 12 + 3) // 3)
 
 df['buildYear'] = df['buildYear'].replace('暂无信息', 1994)
 df['buildYear'] = df['buildYear'].astype(int)
+df['build_age'] = df['tradeTime_year'] - df['buildYear']
 # 直接使用小区的构建年份填充暂无信息
 # df['buildYear_allmean'] = df['buildYear'].replace(0, int(df['buildYear'].mean()))
 
@@ -257,6 +263,18 @@ for fea in tqdm(community_feas):
     grouped_df = grouped_df.reset_index()
     df = pd.merge(df, grouped_df, on='plate', how='left')
 
+####### rank信息
+community_feas = ['area', 'mean_area', 'now_trade_interval',
+                  'now_build_interval', 'totalFloor',
+                  'tradeMeanPrice', 'tradeNewMeanPrice',
+                  'totalTradeMoney', 'totalTradeArea', 'remainNewNum',
+                  'uv_pv_ratio', 'pv', 'uv',
+                  '室面积', '卫面积', '厅面积', '室数量', '厅数量', '卫数量'
+                  ]
+
+cols = [col for col in (set(community_feas+numerical_feas))]
+for col in cols:
+    df[col + '_Rank'] = df[col].rank()
 # # ----------- 地区特征 -------------
 # region_trade_nums = dict(df['region'].value_counts())
 # df['region_nums'] = df['region'].apply(lambda x: region_trade_nums[x])
@@ -306,6 +324,7 @@ features = [fea for fea in df.columns if fea not in no_features]
 train, test = df[:len(df_train)], df[len(df_train):]
 
 print("训练集和测试集维度：", train.shape, test.shape)
+train.reset_index(drop=True)
 df.head(100).to_csv('input/df.csv', index=False)
 print(features)
 
