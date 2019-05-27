@@ -69,7 +69,8 @@ print("filter area/money after:", len(df_train))
 # df_train = df_train[df_train['houseType'].isin(unique_house)]
 # print("filter houseType after:", len(df_train))
 # ------------------ 过滤数据 end ----------------
-
+df_train = df_train.sort_values(by=['communityName', 'tradeTime'], ascending=(True, True))
+df_test = df_test.sort_values(by=['communityName', 'tradeTime'], ascending=(True, True))
 df = pd.concat([df_train, df_test], sort=False, axis=0, ignore_index=True)
 
 # 数据预处理
