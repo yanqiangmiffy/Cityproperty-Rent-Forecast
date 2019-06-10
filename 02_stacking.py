@@ -38,7 +38,7 @@ scores_list = []
 
 print("start：********************************")
 start = time.time()
-kf = KFold(n_splits=10, shuffle=True, random_state=2019)
+kf = KFold(n_splits=5, shuffle=True, random_state=2019)
 for k, (train_index, test_index) in enumerate(kf.split(X, y)):
     x_train, y_train = X[train_index], y[train_index]
     x_valid, y_valid = X[test_index], y[test_index]
