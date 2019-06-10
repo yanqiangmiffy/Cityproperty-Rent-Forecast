@@ -275,6 +275,8 @@ train, test = df[:len(df_train)], df[len(df_train):]
 
 print("训练集和测试集维度：", train.shape, test.shape)
 df.head(100).to_csv('input/df.csv', index=False)
+train.to_csv('input/train.csv', index=False)
+test.to_csv('input/test.csv', index=False)
 print(features)
 
 
